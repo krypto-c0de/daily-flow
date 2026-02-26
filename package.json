@@ -13,7 +13,9 @@
     "react-dom": "^18.3.1",
     "zustand": "^4.5.2",
     "lucide-react": "^0.378.0",
-    "@supabase/supabase-js": "^2.43.0",
+    "@supabase/supabase-js": "^2.43.0"
+  },
+  "devDependencies": {
     "vite": "^5.2.11",
     "@vitejs/plugin-react": "^4.2.1",
     "vite-plugin-pwa": "^0.20.0",
@@ -24,7 +26,6 @@
     "@types/react": "^18.3.1",
     "@types/react-dom": "^18.3.0"
   },
-  "devDependencies": {},
   "engines": {
     "node": "24.x"
   }
