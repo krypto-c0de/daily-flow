@@ -1,4 +1,5 @@
 import { useEffect, useState } from 'react'
+import Toggle from '../components/Toggle'
 import { useStore } from '../store/useStore'
 import { toDateKey, CATEGORY_META } from '../models/types'
 
@@ -20,7 +21,6 @@ function dayLabel(dk: string): string {
   return d.toLocaleDateString('pt-BR', { weekday: 'short', day: 'numeric' })
 }
 
-// Fix #11 — Request notification permission and schedule daily reminder
 async function requestNotifications(): Promise<boolean> {
   if (!('Notification' in window)) return false
   if (Notification.permission === 'granted') return true
@@ -28,15 +28,7 @@ async function requestNotifications(): Promise<boolean> {
   return result === 'granted'
 }
 
-function scheduleReminder() {
-  // Uses ServiceWorker registration if available for real push
-  // Falls back to a simple setTimeout-based reminder for demo
-  if ('serviceWorker' in navigator && navigator.serviceWorker.controller) {
-    navigator.serviceWorker.controller.postMessage({ type: 'SCHEDULE_REMINDER', hour: 20 })
-  }
-}
-
-export default function SummaryView() {
+export default function SummaryView({ onOpenSettings }: { onOpenSettings?: () => void }) {
   const { goals, tasksForDate, summaryForDate, darkMode, toggleDarkMode, notificationsEnabled, toggleNotifications } = useStore()
   const [animated, setAnimated] = useState(false)
 
@@ -53,13 +45,13 @@ export default function SummaryView() {
   const handleNotificationToggle = async () => {
     if (!notificationsEnabled) {
       const granted = await requestNotifications()
-      if (granted) { scheduleReminder(); toggleNotifications() }
+      if (granted) toggleNotifications()
     } else {
       toggleNotifications()
     }
   }
 
-  // Fix #13 — streak calc
+  // Streak calc
   const streak = (() => {
     let count = 0
     const days = [...last30].reverse()
@@ -71,6 +63,18 @@ export default function SummaryView() {
     return count
   })()
 
+  // Best streak in last 30 days
+  const bestStreak = (() => {
+    let best = 0, cur = 0
+    for (const dk of last30) {
+      const s = summaryForDate(dk)
+      if (s.totalTasks > 0 && s.completionPercentage === 100) {
+        cur++; best = Math.max(best, cur)
+      } else cur = 0
+    }
+    return best
+  })()
+
   const statusEmoji = (() => {
     const p = todaySummary.completionPercentage
     if (p === 100) return '🎉'; if (p >= 75) return '🔥'; if (p >= 50) return '💪'
@@ -78,14 +82,13 @@ export default function SummaryView() {
   })()
 
   return (
-    <div className="h-full flex flex-col">
+    <div className="h-full flex flex-col min-h-0">
       <div className="flex-shrink-0 px-5 pb-2" style={{ paddingTop: 'calc(var(--safe-top) + 0.75rem)', background: 'var(--paper)' }}>
         <div className="flex items-start justify-between">
           <div>
             <p className="text-[11px] font-medium uppercase tracking-widest" style={{ color: 'var(--muted)' }}>Estatísticas</p>
             <h1 className="font-display text-3xl mt-0.5" style={{ color: 'var(--ink)' }}>Resumo</h1>
           </div>
-          {/* Fix #12 — dark mode toggle */}
           <button onClick={toggleDarkMode}
             className="w-9 h-9 rounded-full flex items-center justify-center mt-1 active:scale-90 transition-transform"
             style={{ background: 'var(--soft)', color: 'var(--ink)' }}>
@@ -104,16 +107,25 @@ export default function SummaryView() {
               <p className="font-display text-5xl leading-none mt-1" style={{ color: 'var(--ink)' }}>{todaySummary.completionPercentage}%</p>
               <p className="text-[13px] mt-1" style={{ color: 'var(--muted)' }}>concluído</p>
             </div>
-            <div className="text-center">
-              <div className="text-4xl mb-1">{statusEmoji}</div>
+            <div className="text-center flex flex-col items-center gap-2">
+              <div className="text-4xl">{statusEmoji}</div>
               {streak > 0 && (
-                <div className="text-[12px] font-semibold px-2 py-0.5 rounded-full" style={{ background: 'var(--soft)', color: 'var(--ink)' }}>
-                  🔥 {streak} dias
+                <div
+                  className="flex items-center gap-1 text-[12px] font-semibold px-2.5 py-1 rounded-full"
+                  style={{
+                    background: streak >= 7 ? '#FF6B0020' : 'var(--soft)',
+                    color: streak >= 7 ? '#FF6B00' : 'var(--ink)',
+                    border: streak >= 7 ? '1px solid #FF6B0040' : 'none',
+                  }}
+                >
+                  <span style={{ animation: streak >= 3 ? 'flamePulse 1.5s ease-in-out infinite' : 'none' }}>🔥</span>
+                  {streak} dia{streak !== 1 ? 's' : ''}
                 </div>
               )}
             </div>
           </div>
-          <div className="grid grid-cols-3 divide-x rounded-xl overflow-hidden" style={{ borderColor: 'var(--soft)', background: 'var(--paper)' }}>
+
+          <div className="grid grid-cols-3 divide-x rounded-xl overflow-hidden" style={{ background: 'var(--paper)' }}>
             {[
               { v: todaySummary.completedTasks, l: 'Feitas' },
               { v: todaySummary.totalTasks - todaySummary.completedTasks, l: 'Pendentes' },
@@ -124,6 +136,26 @@ export default function SummaryView() {
                 <span className="text-[10px]" style={{ color: 'var(--muted)' }}>{l}</span>
               </div>
             ))}
+          </div>
+        </div>
+
+        {/* Streak cards */}
+        <div className="grid grid-cols-2 gap-3 fade-up fade-up-1">
+          <div className="rounded-2xl p-4 flex flex-col gap-1" style={{ background: 'var(--white)' }}>
+            <span className="text-[11px] uppercase tracking-widest font-medium" style={{ color: 'var(--muted)' }}>Sequência atual</span>
+            <div className="flex items-end gap-1.5">
+              <span className="font-display text-3xl" style={{ color: 'var(--ink)' }}>{streak}</span>
+              <span className="text-[20px] mb-0.5">🔥</span>
+            </div>
+            <span className="text-[11px]" style={{ color: 'var(--muted)' }}>dias consecutivos</span>
+          </div>
+          <div className="rounded-2xl p-4 flex flex-col gap-1" style={{ background: 'var(--white)' }}>
+            <span className="text-[11px] uppercase tracking-widest font-medium" style={{ color: 'var(--muted)' }}>Recorde (30d)</span>
+            <div className="flex items-end gap-1.5">
+              <span className="font-display text-3xl" style={{ color: 'var(--ink)' }}>{bestStreak}</span>
+              <span className="text-[20px] mb-0.5">🏆</span>
+            </div>
+            <span className="text-[11px]" style={{ color: 'var(--muted)' }}>dias seguidos</span>
           </div>
         </div>
 
@@ -154,7 +186,7 @@ export default function SummaryView() {
           </div>
         </div>
 
-        {/* Fix #13 — 30-day streak calendar */}
+        {/* 30-day calendar */}
         <div className="fade-up fade-up-3">
           <p className="text-[11px] font-semibold uppercase tracking-widest mb-2 px-1" style={{ color: 'var(--muted)' }}>Calendário (30 dias)</p>
           <div className="rounded-2xl p-4 shadow-sm" style={{ background: 'var(--white)' }}>
@@ -176,29 +208,27 @@ export default function SummaryView() {
                 )
               })}
             </div>
-            <div className="flex items-center gap-3 mt-3">
-              <div className="flex items-center gap-1.5">
-                <div className="w-3 h-3 rounded-sm" style={{ background: '#4CAF50' }} />
-                <span className="text-[10px]" style={{ color: 'var(--muted)' }}>100%</span>
-              </div>
-              <div className="flex items-center gap-1.5">
-                <div className="w-3 h-3 rounded-sm opacity-40" style={{ background: 'var(--ink)' }} />
-                <span className="text-[10px]" style={{ color: 'var(--muted)' }}>Parcial</span>
-              </div>
-              <div className="flex items-center gap-1.5">
-                <div className="w-3 h-3 rounded-sm" style={{ background: 'var(--soft)' }} />
-                <span className="text-[10px]" style={{ color: 'var(--muted)' }}>Vazio</span>
-              </div>
+            <div className="flex items-center gap-4 mt-3">
+              {[
+                { color: '#4CAF50', opacity: 1, label: '100%' },
+                { color: 'var(--ink)', opacity: 0.4, label: 'Parcial' },
+                { color: 'var(--soft)', opacity: 1, label: 'Vazio' },
+              ].map(({ color, opacity, label }) => (
+                <div key={label} className="flex items-center gap-1.5">
+                  <div className="w-3 h-3 rounded-sm" style={{ background: color, opacity }} />
+                  <span className="text-[10px]" style={{ color: 'var(--muted)' }}>{label}</span>
+                </div>
+              ))}
             </div>
           </div>
         </div>
 
         {/* Goals breakdown */}
-        {goals.length > 0 && (
+        {goals.filter(g => !g.isArchived).length > 0 && (
           <div className="fade-up fade-up-4">
             <p className="text-[11px] font-semibold uppercase tracking-widest mb-2 px-1" style={{ color: 'var(--muted)' }}>Por meta</p>
             <div className="space-y-2.5">
-              {goals.map(goal => {
+              {goals.filter(g => !g.isArchived).map(goal => {
                 const tasks = tasksForDate(today).filter(t => t.goalId === goal.id)
                 const done = tasks.filter(t => t.isCompleted).length
                 const pct = tasks.length > 0 ? Math.round((done / tasks.length) * 100) : 0
@@ -225,18 +255,14 @@ export default function SummaryView() {
           </div>
         )}
 
-        {/* Fix #11 — Notifications toggle */}
+        {/* Notifications */}
         <div className="fade-up fade-up-5 rounded-2xl p-4 shadow-sm" style={{ background: 'var(--white)' }}>
           <div className="flex items-center justify-between">
             <div>
               <p className="text-[15px] font-semibold" style={{ color: 'var(--ink)' }}>🔔 Lembrete diário</p>
               <p className="text-[12px] mt-0.5" style={{ color: 'var(--muted)' }}>Notificação às 20h para revisar suas tarefas</p>
             </div>
-            <button onClick={handleNotificationToggle}
-              className="w-11 h-6 rounded-full relative transition-colors duration-200 flex-shrink-0"
-              style={{ background: notificationsEnabled ? 'var(--ink)' : 'var(--line)' }}>
-              <span className={`absolute top-0.5 w-5 h-5 rounded-full bg-white shadow transition-transform duration-200 ${notificationsEnabled ? 'translate-x-5' : 'translate-x-0.5'}`} />
-            </button>
+            <Toggle checked={notificationsEnabled} onChange={handleNotificationToggle} />
           </div>
         </div>
 

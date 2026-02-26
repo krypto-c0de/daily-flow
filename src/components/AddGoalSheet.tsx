@@ -2,6 +2,7 @@ import { useState } from 'react'
 import { GoalCategory, CATEGORY_META } from '../models/types'
 import { useStore } from '../store/useStore'
 import DatePicker from './DatePicker'
+import Toggle from './Toggle'
 
 interface Props { onClose: () => void }
 
@@ -85,13 +86,7 @@ export default function AddGoalSheet({ onClose }: Props) {
           <div className="rounded-2xl p-4" style={{ background: 'var(--white)' }}>
             <div className="flex items-center justify-between">
               <span className="text-[15px] font-medium" style={{ color: 'var(--ink)' }}>Definir prazo</span>
-              <button
-                onClick={() => setHasDate(v => !v)}
-                className="w-11 h-6 rounded-full relative transition-colors duration-200"
-                style={{ background: hasDate ? 'var(--ink)' : 'var(--line)' }}
-              >
-                <span className={`absolute top-0.5 w-5 h-5 rounded-full bg-white shadow transition-transform duration-200 ${hasDate ? 'translate-x-5' : 'translate-x-0.5'}`} />
-              </button>
+              <Toggle checked={hasDate} onChange={() => setHasDate(v => !v)} />
             </div>
             {hasDate && (
               <div className="mt-3">
