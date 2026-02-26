@@ -32,9 +32,13 @@ export const useAuth = create<AuthStore>((set) => ({
   signInWithEmail: async (email, password) => {
     set({ loading: true, error: null })
     try {
-      const { error } = await supabase.auth.signInWithPassword({ email, password })
-      if (error) set({ error: error.message, loading: false })
-      else set({ loading: false })
+      const { data, error } = await supabase.auth.signInWithPassword({ email, password })
+      if (error) {
+        set({ error: error.message, loading: false })
+      } else {
+        // update store immediately so UI can respond before auth state change event
+        set({ session: data.session, user: data.session?.user ?? null, loading: false })
+      }
     } catch (e) { set({ error: (e as Error).message, loading: false }) }
   },
 

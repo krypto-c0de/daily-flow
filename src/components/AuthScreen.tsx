@@ -27,8 +27,11 @@ export default function AuthScreen() {
     localStorage.setItem('df-last-email', email.trim())
     if (mode === 'signup') {
       await signUpWithEmail(email.trim(), password, name.trim())
-      if (!useAuth.getState().error)
+      if (!useAuth.getState().error) {
         setSuccessMsg('Conta criada! Verifique seu e-mail para confirmar.')
+        // switch to login view so user can sign in after confirming
+        setMode('login')
+      }
     } else {
       await signInWithEmail(email.trim(), password)
     }
