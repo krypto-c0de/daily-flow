@@ -162,7 +162,7 @@ export default function AuthScreen() {
           {/* Logo — wordmark only, no icon */}
           <div style={{ display:'flex', alignItems:'center', gap:8 }}>
             <span style={{
-              color:'#fff', fontWeight:700, fontSize:15, letterSpacing:'-.02em',
+              color:'#fff', fontWeight:700, letterSpacing:'-.02em',
               fontFamily:'"DM Serif Display", serif', fontSize:18,
             }}>
               DailyFlow

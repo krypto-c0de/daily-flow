@@ -60,7 +60,7 @@ function EditGoalSheet({ goal, onClose }: { goal: Goal; onClose: () => void }) {
                 return (
                   <button key={cat} onClick={() => setCategory(cat)}
                     className="py-3 rounded-xl text-[13px] font-medium flex flex-col items-center gap-1 transition-all active:scale-95"
-                    style={{ background: active ? m.color : 'var(--white)', color: active ? '#fff' : 'var(--ink)' }}>
+                    style={{ background: active ? m.color: active ? '#fff' : 'var(--ink)' }}>
                     <span>{m.icon}</span><span>{cat}</span>
                   </button>
                 )

@@ -68,9 +68,8 @@ const ProfileIcon = ({ active, letter }: { active: boolean; letter: string }) =>
 export default function App() {
   const [tab, setTab] = useState<Tab>('today')
   // Só mostra splash se não há sessão já salva (evita mostrar ao relogar)
-  const hasSavedSession = !!localStorage.getItem('sb-' + 
-    (import.meta.env.VITE_SUPABASE_URL?.replace('https://','').split('.')[0] ?? 'x') + 
-    '-auth-token') || localStorage.getItem('dailyflow-offline-mode') === '1'
+  const hasSavedSession = Object.keys(localStorage).some(k => k.endsWith('-auth-token'))
+    || localStorage.getItem('dailyflow-offline-mode') === '1'
   const [showSplash, setShowSplash] = useState(!hasSavedSession)
   const [showOnboarding, setShowOnboarding] = useState(false)
   const [showSettings, setShowSettings] = useState(false)
