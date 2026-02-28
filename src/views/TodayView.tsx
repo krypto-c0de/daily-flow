@@ -14,7 +14,7 @@ function getGreeting(name?: string) {
   return `Boa noite${who} 🌙`
 }
 
-export default function TodayView({ onOpenSettings }: { onOpenSettings?: () => void }) {
+export default function TodayView() {
   const { goals, tasksForDate, summaryForDate, reorderTasks, focusMode, toggleFocusMode, seedRecurringTasks, settings } = useStore()
   const [showAdd, setShowAdd] = useState(false)
   const [showConfetti, setShowConfetti] = useState(false)
@@ -86,17 +86,17 @@ export default function TodayView({ onOpenSettings }: { onOpenSettings?: () => v
   return (
     <div className="h-full flex flex-col min-h-0">
       <div
-        className="flex-shrink-0 px-5 pb-2"
-        style={{ paddingTop: 'calc(var(--safe-top) + 0.75rem)', background: 'var(--paper)' }}
+        className="flex-shrink-0 px-5 pb-2 pt-2"
+        style={{ background: 'var(--paper)' }}
       >
-        <div className="flex items-start justify-between">
+        <div className="flex items-center justify-between">
           <div>
-            <p className="text-[11px] font-medium capitalize tracking-wide" style={{ color: 'var(--muted)' }}>{dateLabel}</p>
-            <h1 className="font-display text-3xl mt-0.5" style={{ color: 'var(--ink)' }}>
+            <p style={{ fontSize: 12, fontWeight: 500, textTransform: 'capitalize', letterSpacing: '.02em', color: 'var(--muted)', fontFamily: 'var(--font-system)', marginBottom: 2 }}>{dateLabel}</p>
+            <h1 style={{ fontSize: 28, fontWeight: 700, letterSpacing: '-.02em', color: 'var(--ink)', fontFamily: 'var(--font-system)', lineHeight: 1.1 }}>
               {settings.name ? getGreeting(settings.name) : 'Meu Dia'}
             </h1>
           </div>
-          <div className="flex items-center gap-2 mt-1">
+          <div className="flex items-center gap-2">
             {/* Focus mode button */}
             <button
               onClick={() => { toggleFocusMode(); if (navigator.vibrate) navigator.vibrate(15) }}

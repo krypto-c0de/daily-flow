@@ -19,13 +19,23 @@ export const useAuth = create<AuthStore>((set) => ({
   user: null, session: null, loading: true, error: null,
 
   initAuth: () => {
-    if (!supabaseConfigured) { set({ loading: false }); return () => {} }
-    supabase.auth.getSession()
-      .then(({ data: { session } }) => set({ session, user: session?.user ?? null, loading: false }))
-      .catch(() => set({ loading: false }))
-    const { data: { subscription } } = supabase.auth.onAuthStateChange((_e, session) => {
-      set({ session, user: session?.user ?? null, loading: false })
+    if (!supabaseConfigured) {
+      set({ loading: false })
+      return () => {}
+    }
+
+    // Subscribe FIRST so we don't miss any event
+    const { data: { subscription } } = supabase.auth.onAuthStateChange((_event, session) => {
+      set({ session, user: session?.user ?? null, loading: false, error: null })
     })
+
+    // Then get current session (triggers onAuthStateChange if session exists)
+    supabase.auth.getSession()
+      .then(({ data: { session } }) => {
+        set({ session, user: session?.user ?? null, loading: false })
+      })
+      .catch(() => set({ loading: false }))
+
     return () => subscription.unsubscribe()
   },
 
@@ -36,21 +46,33 @@ export const useAuth = create<AuthStore>((set) => ({
       if (error) {
         set({ error: error.message, loading: false })
       } else {
-        // update store immediately so UI can respond before auth state change event
-        set({ session: data.session, user: data.session?.user ?? null, loading: false })
+        // onAuthStateChange will fire and update state, but also set immediately
+        set({ session: data.session, user: data.session?.user ?? null, loading: false, error: null })
       }
-    } catch (e) { set({ error: (e as Error).message, loading: false }) }
+    } catch (e) {
+      set({ error: (e as Error).message, loading: false })
+    }
   },
 
   signUpWithEmail: async (email, password, name) => {
     set({ loading: true, error: null })
     try {
-      const { error } = await supabase.auth.signUp({
-        email, password, options: { data: { full_name: name } },
+      const { data, error } = await supabase.auth.signUp({
+        email, password,
+        options: { data: { full_name: name } },
       })
-      if (error) set({ error: error.message, loading: false })
-      else set({ loading: false })
-    } catch (e) { set({ error: (e as Error).message, loading: false }) }
+      if (error) {
+        set({ error: error.message, loading: false })
+      } else if (data.session) {
+        // Email confirmation disabled — user logged in immediately
+        set({ session: data.session, user: data.session.user, loading: false, error: null })
+      } else {
+        // Email confirmation required
+        set({ loading: false, error: null })
+      }
+    } catch (e) {
+      set({ error: (e as Error).message, loading: false })
+    }
   },
 
   signInWithGoogle: async () => {
@@ -61,12 +83,14 @@ export const useAuth = create<AuthStore>((set) => ({
         options: { redirectTo: window.location.origin },
       })
       if (error) set({ error: error.message, loading: false })
-    } catch (e) { set({ error: (e as Error).message, loading: false }) }
+    } catch (e) {
+      set({ error: (e as Error).message, loading: false })
+    }
   },
 
   signOut: async () => {
     try { await supabase.auth.signOut() } catch {}
-    set({ user: null, session: null })
+    set({ user: null, session: null, error: null, loading: false })
   },
 
   clearError: () => set({ error: null }),

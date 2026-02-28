@@ -162,7 +162,7 @@ export default function GoalsView() {
 
   return (
     <div className="h-full flex flex-col min-h-0">
-      <div className="flex-shrink-0 px-5 pb-2" style={{ paddingTop: 'calc(var(--safe-top) + 0.75rem)', background: 'var(--paper)' }}>
+      <div className="flex-shrink-0 px-5 pb-2" style={{ paddingTop: '0.5rem', background: 'var(--paper)' }}>
         <div className="flex items-start justify-between">
           <div>
             <p className="text-[11px] font-medium uppercase tracking-widest" style={{ color: 'var(--muted)' }}>Planejamento</p>

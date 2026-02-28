@@ -27,13 +27,19 @@ export default function AuthScreen() {
     localStorage.setItem('df-last-email', email.trim())
     if (mode === 'signup') {
       await signUpWithEmail(email.trim(), password, name.trim())
-      if (!useAuth.getState().error) {
-        setSuccessMsg('Conta criada! Verifique seu e-mail para confirmar.')
-        // switch to login view so user can sign in after confirming
-        setMode('login')
+      // Check state AFTER await
+      const st = useAuth.getState()
+      if (!st.error) {
+        if (!st.user) {
+          // Email confirmation required - Supabase setting
+          setSuccessMsg('Conta criada! Verifique seu e-mail para confirmar e depois faça login.')
+          setMode('login')
+        }
+        // If st.user exists, App.tsx auto-navigates via Zustand re-render
       }
     } else {
       await signInWithEmail(email.trim(), password)
+      // App.tsx is subscribed to useAuth() — if user is set, it re-renders and shows main app
     }
   }
 
