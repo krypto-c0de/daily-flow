@@ -81,9 +81,14 @@ export const useAuth = create<AuthStore>((set) => ({
   signInWithGoogle: async () => {
     set({ loading: true, error: null })
     try {
+      // Use VITE_APP_URL env var if set (for production), otherwise fall back to current origin.
+      // This prevents Supabase from redirecting to localhost:3000 in production.
+      const redirectTo =
+        (import.meta.env.VITE_APP_URL as string | undefined)?.replace(/\/$/, '') ||
+        window.location.origin
       const { error } = await supabase.auth.signInWithOAuth({
         provider: 'google',
-        options: { redirectTo: window.location.origin },
+        options: { redirectTo },
       })
       if (error) set({ error: error.message, loading: false })
     } catch (e) {
