@@ -24,17 +24,20 @@ export const useAuth = create<AuthStore>((set) => ({
       return () => {}
     }
 
-    // Subscribe FIRST so we don't miss any event
-    const { data: { subscription } } = supabase.auth.onAuthStateChange((_event, session) => {
+    // Subscribe to auth changes FIRST
+    const { data: { subscription } } = supabase.auth.onAuthStateChange((event, session) => {
+      console.log('[useAuth] onAuthStateChange:', event, session?.user?.email)
       set({ session, user: session?.user ?? null, loading: false, error: null })
     })
 
-    // Then get current session (triggers onAuthStateChange if session exists)
-    supabase.auth.getSession()
-      .then(({ data: { session } }) => {
-        set({ session, user: session?.user ?? null, loading: false })
-      })
-      .catch(() => set({ loading: false }))
+    // Then explicitly get current session
+    supabase.auth.getSession().then(({ data: { session }, error }) => {
+      console.log('[useAuth] getSession:', session?.user?.email, error)
+      set({ session, user: session?.user ?? null, loading: false })
+    }).catch((err) => {
+      console.error('[useAuth] getSession error:', err)
+      set({ loading: false })
+    })
 
     return () => subscription.unsubscribe()
   },
@@ -42,14 +45,16 @@ export const useAuth = create<AuthStore>((set) => ({
   signInWithEmail: async (email, password) => {
     set({ loading: true, error: null })
     try {
+      console.log('[useAuth] signInWithEmail attempt:', email)
       const { data, error } = await supabase.auth.signInWithPassword({ email, password })
+      console.log('[useAuth] signInWithPassword result:', { user: data?.user?.email, error: error?.message })
       if (error) {
         set({ error: error.message, loading: false })
       } else {
-        // onAuthStateChange will fire and update state, but also set immediately
         set({ session: data.session, user: data.session?.user ?? null, loading: false, error: null })
       }
     } catch (e) {
+      console.error('[useAuth] signInWithEmail exception:', e)
       set({ error: (e as Error).message, loading: false })
     }
   },
@@ -64,10 +69,8 @@ export const useAuth = create<AuthStore>((set) => ({
       if (error) {
         set({ error: error.message, loading: false })
       } else if (data.session) {
-        // Email confirmation disabled — user logged in immediately
         set({ session: data.session, user: data.session.user, loading: false, error: null })
       } else {
-        // Email confirmation required
         set({ loading: false, error: null })
       }
     } catch (e) {
