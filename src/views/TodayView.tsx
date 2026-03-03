@@ -84,9 +84,9 @@ export default function TodayView() {
   })
 
   return (
-    <div className="h-full flex flex-col min-h-0">
+    <div>
       <div
-        className="flex-shrink-0 px-5 pb-2 pt-2"
+        className="px-5 pb-2 pt-2"
         style={{ background: 'var(--paper)' }}
       >
         <div className="flex items-center justify-between">
@@ -152,7 +152,7 @@ export default function TodayView() {
       <div
         ref={scrollRef}
         key={refreshKey}
-        className="flex-1 scroll-area px-5 space-y-5 pt-2"
+        className="px-5 space-y-5 pt-2 pb-6"
         style={{ paddingBottom: 'calc(var(--safe-bottom) + 1rem)' }}
         onTouchStart={onTouchStartPull}
         onTouchMove={onTouchMovePull}

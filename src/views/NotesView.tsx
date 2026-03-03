@@ -44,7 +44,7 @@ export default function NotesView() {
   }
 
   return (
-    <div className="h-full flex flex-col min-h-0">
+    <div className="block">
       {/* Header */}
       <div className="flex-shrink-0 px-5 pb-3 pt-2" style={{ background: 'var(--paper)' }}>
         <h1 style={{
@@ -95,7 +95,7 @@ export default function NotesView() {
       </div>
 
       {/* Notes list */}
-      <div className="flex-1 scroll-area px-5 space-y-3" style={{ paddingBottom: 'calc(var(--safe-bottom) + 1rem)' }}>
+      <div className="scroll-area px-5 space-y-3" style={{ paddingBottom: 'calc(var(--safe-bottom) + 1rem)' }}>
         {notes.length === 0 ? (
           <div className="flex flex-col items-center justify-center pt-16 gap-3 fade-up">
             <div className="w-16 h-16 rounded-2xl flex items-center justify-center text-3xl" style={{ background: 'var(--soft)' }}>

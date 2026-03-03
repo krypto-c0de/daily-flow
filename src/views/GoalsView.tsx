@@ -161,7 +161,7 @@ export default function GoalsView() {
   }
 
   return (
-    <div className="h-full flex flex-col min-h-0">
+    <div className="block">
       <div className="flex-shrink-0 px-5 pb-2" style={{ paddingTop: '0.5rem', background: 'var(--paper)' }}>
         <div className="flex items-start justify-between">
           <div>
@@ -174,7 +174,7 @@ export default function GoalsView() {
         </div>
       </div>
 
-      <div className="flex-1 scroll-area px-5 pt-2 space-y-3" style={{ paddingBottom: 'calc(var(--safe-bottom) + 1rem)' }}>
+      <div className="scroll-area px-5 pt-2 space-y-3" style={{ paddingBottom: 'calc(var(--safe-bottom) + 1rem)' }}>
         {activeGoals.length === 0 && archivedGoals.length === 0 ? (
           <div className="flex flex-col items-center justify-center pt-20 gap-4 fade-up">
             <div className="w-24 h-24 rounded-3xl flex items-center justify-center text-5xl" style={{ background: 'var(--soft)' }}>

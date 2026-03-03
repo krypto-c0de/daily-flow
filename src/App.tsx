@@ -1,4 +1,4 @@
-import { useState, useEffect } from 'react'
+import { useState, useEffect, useRef } from 'react'
 import { useStore } from './store/useStore'
 import { useAuth } from './lib/useAuth'
 import TodayView from './views/TodayView'
@@ -9,38 +9,38 @@ import OnboardingTour from './components/OnboardingTour'
 import SplashScreen from './components/SplashScreen'
 import ProfileSheet from './components/ProfileSheet'
 import AuthScreen from './components/AuthScreen'
+import DayDetailSheet from './components/DayDetailSheet'
 import { ACCENT_COLORS } from './models/types'
 
 type Tab = 'today' | 'notes' | 'goals' | 'summary'
 
 const TodayIcon = ({ active }: { active: boolean }) => (
-  <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth={active ? 2 : 1.6} strokeLinecap="round" strokeLinejoin="round">
+  <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth={active ? 2.2 : 1.6} strokeLinecap="round" strokeLinejoin="round">
     <rect x="3" y="4" width="18" height="18" rx="3"/>
     <path d="M16 2v4M8 2v4M3 10h18"/>
-    {active && <path d="M8 14h.01M12 14h.01M16 14h.01M8 18h.01M12 18h.01" strokeWidth="3"/>}
   </svg>
 )
 const NotesIcon = ({ active }: { active: boolean }) => (
-  <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth={active ? 2 : 1.6} strokeLinecap="round" strokeLinejoin="round">
+  <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth={active ? 2.2 : 1.6} strokeLinecap="round" strokeLinejoin="round">
     <path d="M14 2H6a2 2 0 00-2 2v16a2 2 0 002 2h12a2 2 0 002-2V8z"/>
     <path d="M14 2v6h6"/><path d="M16 13H8M16 17H8M10 9H8"/>
   </svg>
 )
 const GoalsIcon = ({ active }: { active: boolean }) => (
-  <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth={active ? 2 : 1.6} strokeLinecap="round" strokeLinejoin="round">
+  <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth={active ? 2.2 : 1.6} strokeLinecap="round" strokeLinejoin="round">
     <circle cx="12" cy="12" r="10"/><circle cx="12" cy="12" r="6"/>
     <circle cx="12" cy="12" r="2" fill={active ? 'currentColor' : 'none'}/>
   </svg>
 )
 const SummaryIcon = ({ active }: { active: boolean }) => (
-  <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth={active ? 2 : 1.6} strokeLinecap="round" strokeLinejoin="round">
-    <rect x="3" y="12" width="4" height="9" rx="1" fill={active ? 'currentColor' : 'none'} opacity={active ? "0.35" : "1"}/>
-    <rect x="10" y="7" width="4" height="14" rx="1" fill={active ? 'currentColor' : 'none'} opacity={active ? "0.35" : "1"}/>
-    <rect x="17" y="3" width="4" height="18" rx="1" fill={active ? 'currentColor' : 'none'} opacity={active ? "0.35" : "1"}/>
+  <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth={active ? 2.2 : 1.6} strokeLinecap="round" strokeLinejoin="round">
+    <rect x="3" y="12" width="4" height="9" rx="1" fill={active ? 'currentColor' : 'none'} opacity={active ? '0.35' : '1'}/>
+    <rect x="10" y="7" width="4" height="14" rx="1" fill={active ? 'currentColor' : 'none'} opacity={active ? '0.35' : '1'}/>
+    <rect x="17" y="3" width="4" height="18" rx="1" fill={active ? 'currentColor' : 'none'} opacity={active ? '0.35' : '1'}/>
   </svg>
 )
 const PlusIcon = () => (
-  <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.2" strokeLinecap="round" strokeLinejoin="round">
+  <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round">
     <path d="M12 5v14M5 12h14"/>
   </svg>
 )
@@ -52,113 +52,196 @@ const tabs: { id: Tab; label: string; Icon: React.FC<{ active: boolean }> }[] = 
   { id: 'summary', label: 'Resumo', Icon: SummaryIcon },
 ]
 
-function WeekCalendar() {
-  const today = new Date()
-  const dow = today.getDay()
-  const dayLabels = ['Dom', 'Seg', 'Ter', 'Qua', 'Qui', 'Sex', 'Sáb']
-  const week = Array.from({ length: 7 }, (_, i) => {
-    const d = new Date(today)
-    d.setDate(today.getDate() - dow + i)
-    return { label: dayLabels[i], num: d.getDate(), isToday: i === dow }
-  })
+/* ── Floating pill tab bar ── */
+function PillTabBar({ tab, setTab, onAdd }: { tab: Tab; setTab: (t: Tab) => void; onAdd: () => void }) {
   return (
-    <div className="flex items-center justify-between px-4 pb-2" style={{ gap: 0 }}>
-      {week.map(({ label, num, isToday }, idx) => (
-        <div key={idx} className="flex flex-col items-center flex-1" style={{ position: 'relative' }}>
-          {idx > 0 && <div style={{ position: 'absolute', left: 0, top: '10%', height: '80%', width: 1, background: 'var(--line)' }} />}
-          <span style={{ fontSize: 10, fontWeight: 500, letterSpacing: '.04em', color: isToday ? 'var(--ink)' : 'var(--muted)', textTransform: 'uppercase', fontFamily: 'var(--font-system)', marginBottom: 3 }}>{label}</span>
-          <div style={{ width: 30, height: 30, borderRadius: 8, display: 'flex', alignItems: 'center', justifyContent: 'center', background: isToday ? 'var(--ink)' : 'transparent', color: isToday ? 'var(--paper)' : 'var(--muted)', fontSize: 14, fontWeight: isToday ? 700 : 400, fontFamily: 'var(--font-system)' }}>{num}</div>
-        </div>
-      ))}
+    <div style={{
+      flexShrink: 0,
+      paddingBottom: 'calc(var(--safe-bottom) + 10px)',
+      paddingTop: 8,
+      paddingLeft: 16,
+      paddingRight: 16,
+      background: 'var(--paper)',
+    }}>
+      <div style={{
+        background: 'var(--white)',
+        borderRadius: 32,
+        display: 'flex',
+        alignItems: 'center',
+        padding: '5px',
+        boxShadow: '0 2px 20px rgba(0,0,0,0.09), 0 0 0 1px var(--line)',
+        gap: 2,
+      }}>
+        {/* Left 2 tabs */}
+        {tabs.slice(0, 2).map(({ id, label, Icon }) => {
+          const active = tab === id
+          return (
+            <button key={id} onClick={() => setTab(id)}
+              style={{
+                flex: active ? '1.8' : '1',
+                display: 'flex', flexDirection: 'row', alignItems: 'center', justifyContent: 'center',
+                gap: active ? 6 : 0,
+                padding: '10px 8px',
+                borderRadius: 26,
+                background: active ? 'var(--ink)' : 'transparent',
+                color: active ? 'var(--paper)' : 'var(--muted)',
+                border: 'none', cursor: 'pointer',
+                transition: 'all 0.25s cubic-bezier(0.4,0,0.2,1)',
+                overflow: 'hidden', minWidth: 0,
+              }}
+              className="active:scale-95"
+            >
+              <Icon active={active} />
+              {active && (
+                <span style={{ fontSize: 13, fontWeight: 700, letterSpacing: '-.01em', fontFamily: 'var(--font-system)', whiteSpace: 'nowrap' }}>
+                  {label}
+                </span>
+              )}
+            </button>
+          )
+        })}
+
+        {/* Center + */}
+        <button onClick={onAdd}
+          style={{
+            width: 42, height: 42, borderRadius: '50%', flexShrink: 0,
+            background: 'transparent', color: 'var(--ink)',
+            border: '1.5px solid var(--line)', cursor: 'pointer',
+            display: 'flex', alignItems: 'center', justifyContent: 'center',
+          }}
+          className="active:scale-90 transition-transform"
+        >
+          <PlusIcon />
+        </button>
+
+        {/* Right 2 tabs */}
+        {tabs.slice(2, 4).map(({ id, label, Icon }) => {
+          const active = tab === id
+          return (
+            <button key={id} onClick={() => setTab(id)}
+              style={{
+                flex: active ? '1.8' : '1',
+                display: 'flex', flexDirection: 'row', alignItems: 'center', justifyContent: 'center',
+                gap: active ? 6 : 0,
+                padding: '10px 8px',
+                borderRadius: 26,
+                background: active ? 'var(--ink)' : 'transparent',
+                color: active ? 'var(--paper)' : 'var(--muted)',
+                border: 'none', cursor: 'pointer',
+                transition: 'all 0.25s cubic-bezier(0.4,0,0.2,1)',
+                overflow: 'hidden', minWidth: 0,
+              }}
+              className="active:scale-95"
+            >
+              <Icon active={active} />
+              {active && (
+                <span style={{ fontSize: 13, fontWeight: 700, letterSpacing: '-.01em', fontFamily: 'var(--font-system)', whiteSpace: 'nowrap' }}>
+                  {label}
+                </span>
+              )}
+            </button>
+          )
+        })}
+      </div>
     </div>
   )
 }
 
-function DesktopSidebar({ tab, setTab, displayName, avatarLetter, onProfile, onAdd }: {
-  tab: Tab; setTab: (t: Tab) => void; displayName: string; avatarLetter: string; onProfile: () => void; onAdd: () => void
+/* ── Glassmorphism header with clickable week calendar ── */
+function GlassHeader({
+  scrolled,
+  onDayPress,
+  onProfile,
+  avatarLetter,
+}: {
+  scrolled: boolean
+  onDayPress: (date: Date) => void
+  onProfile: () => void
+  avatarLetter: string
 }) {
   const today = new Date()
-  const dayLabels = ['Domingo', 'Segunda', 'Terça', 'Quarta', 'Quinta', 'Sexta', 'Sábado']
-  const monthLabels = ['Janeiro', 'Fevereiro', 'Março', 'Abril', 'Maio', 'Junho', 'Julho', 'Agosto', 'Setembro', 'Outubro', 'Novembro', 'Dezembro']
-  return (
-    <aside style={{ width: 240, flexShrink: 0, display: 'flex', flexDirection: 'column', height: '100%', borderRight: '1px solid var(--line)', background: 'var(--paper)', padding: '28px 0' }}>
-      {/* Brand */}
-      <div style={{ padding: '0 20px 24px', display: 'flex', alignItems: 'center', gap: 10 }}>
-        <div style={{ width: 32, height: 32, borderRadius: 9, background: 'var(--ink)', display: 'flex', alignItems: 'center', justifyContent: 'center', flexShrink: 0 }}>
-          <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="var(--paper)" strokeWidth="2.2" strokeLinecap="round" strokeLinejoin="round">
-            <path d="M12 2L2 7l10 5 10-5-10-5z"/><path d="M2 17l10 5 10-5M2 12l10 5 10-5"/>
-          </svg>
-        </div>
-        <span style={{ fontWeight: 700, fontSize: 16, letterSpacing: '-.03em', color: 'var(--ink)', fontFamily: 'Georgia, serif' }}>DailyFlow</span>
-      </div>
-
-      {/* Date */}
-      <div style={{ padding: '0 20px 20px', borderBottom: '1px solid var(--line)', marginBottom: 12 }}>
-        <div style={{ fontSize: 11, fontWeight: 600, letterSpacing: '.08em', textTransform: 'uppercase', color: 'var(--muted)', fontFamily: 'var(--font-system)' }}>{dayLabels[today.getDay()]}</div>
-        <div style={{ fontSize: 42, fontWeight: 700, lineHeight: 1, color: 'var(--ink)', fontFamily: 'var(--font-system)', letterSpacing: '-.04em', margin: '3px 0 2px' }}>{today.getDate()}</div>
-        <div style={{ fontSize: 13, color: 'var(--muted)', fontFamily: 'var(--font-system)' }}>{monthLabels[today.getMonth()]} {today.getFullYear()}</div>
-      </div>
-
-      {/* Nav */}
-      <nav style={{ flex: 1, display: 'flex', flexDirection: 'column', gap: 2, padding: '0 12px' }}>
-        {tabs.map(({ id, label, Icon }) => (
-          <button key={id} onClick={() => setTab(id)} style={{
-            display: 'flex', alignItems: 'center', gap: 10, padding: '10px 12px', borderRadius: 10,
-            cursor: 'pointer', border: 'none', width: '100%', textAlign: 'left',
-            background: tab === id ? 'var(--soft)' : 'transparent',
-            color: tab === id ? 'var(--ink)' : 'var(--muted)',
-            fontFamily: 'var(--font-system)', fontSize: 14, fontWeight: tab === id ? 600 : 500,
-            transition: 'background .12s, color .12s',
-          }}>
-            <Icon active={tab === id} />
-            {label}
-          </button>
-        ))}
-      </nav>
-
-      {/* Add button */}
-      <button onClick={onAdd} style={{
-        margin: '8px 12px 0', display: 'flex', alignItems: 'center', justifyContent: 'center',
-        gap: 8, padding: '11px 16px', borderRadius: 10, background: 'var(--ink)', color: 'var(--paper)',
-        fontSize: 14, fontWeight: 600, border: 'none', cursor: 'pointer', fontFamily: 'var(--font-system)',
-        transition: 'opacity .12s',
-      }}>
-        <PlusIcon /> Adicionar
-      </button>
-
-      {/* Profile */}
-      <button onClick={onProfile} style={{
-        margin: '16px 12px 0', padding: 12, borderRadius: 12, border: '1px solid var(--line)',
-        display: 'flex', alignItems: 'center', gap: 10, cursor: 'pointer', background: 'none',
-        width: 'calc(100% - 24px)', textAlign: 'left', transition: 'background .12s',
-      }}>
-        <div style={{ width: 32, height: 32, borderRadius: '50%', background: 'var(--soft)', border: '1px solid var(--line)', display: 'flex', alignItems: 'center', justifyContent: 'center', flexShrink: 0, fontSize: 13, fontWeight: 700, color: 'var(--ink)', fontFamily: 'var(--font-system)' }}>
-          {avatarLetter || <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.8" strokeLinecap="round" strokeLinejoin="round"><circle cx="12" cy="8" r="4"/><path d="M4 20c0-4 3.6-7 8-7s8 3 8 7"/></svg>}
-        </div>
-        <span style={{ fontSize: 13, fontWeight: 600, color: 'var(--ink)', fontFamily: 'var(--font-system)', flex: 1, whiteSpace: 'nowrap', overflow: 'hidden', textOverflow: 'ellipsis' }}>{displayName || 'Meu perfil'}</span>
-        <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="var(--muted)" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" style={{ flexShrink: 0 }}><path d="M9 18l6-6-6-6"/></svg>
-      </button>
-    </aside>
-  )
-}
-
-function DesktopHeader({ tab }: { tab: Tab }) {
-  const today = new Date()
   const dow = today.getDay()
-  const dayShort = ['D', 'S', 'T', 'Q', 'Q', 'S', 'S']
-  const tabLabels: Record<Tab, string> = { today: 'Hoje', notes: 'Notas', goals: 'Metas', summary: 'Resumo' }
+  const dayLabels = ['Dom', 'Seg', 'Ter', 'Qua', 'Qui', 'Sex', 'Sáb']
+  const [selectedIdx, setSelectedIdx] = useState(dow)
+
+  const week = Array.from({ length: 7 }, (_, i) => {
+    const d = new Date(today)
+    d.setDate(today.getDate() - dow + i)
+    return { label: dayLabels[i], num: d.getDate(), date: d, isToday: i === dow }
+  })
+
+  const handleDay = (i: number, date: Date) => {
+    setSelectedIdx(i)
+    onDayPress(date)
+  }
+
   return (
-    <div style={{ height: 64, borderBottom: '1px solid var(--line)', display: 'flex', alignItems: 'center', justifyContent: 'space-between', padding: '0 32px', flexShrink: 0, background: 'var(--paper)' }}>
-      <h2 style={{ fontSize: 20, fontWeight: 700, color: 'var(--ink)', fontFamily: 'var(--font-system)', letterSpacing: '-.02em', lineHeight: 1, margin: 0 }}>{tabLabels[tab]}</h2>
-      <div style={{ display: 'flex', gap: 4 }}>
-        {Array.from({ length: 7 }, (_, i) => {
-          const d = new Date(today); d.setDate(today.getDate() - dow + i)
-          const isToday = i === dow
+    <div
+      style={{
+        flexShrink: 0,
+        paddingTop: 'calc(var(--safe-top) + 0.5rem)',
+        background: scrolled
+          ? 'rgba(var(--paper-rgb, 247,246,243), 0.75)'
+          : 'var(--paper)',
+        backdropFilter: scrolled ? 'blur(16px) saturate(1.8)' : 'none',
+        WebkitBackdropFilter: scrolled ? 'blur(16px) saturate(1.8)' : 'none',
+        borderBottom: scrolled ? '1px solid var(--line)' : '1px solid transparent',
+        transition: 'background 0.3s, border-color 0.3s, backdrop-filter 0.3s',
+        position: 'sticky',
+        top: 0,
+        zIndex: 30,
+      }}
+    >
+      {/* Top bar */}
+      <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', padding: '0 20px 6px' }}>
+        <div style={{ width: 34 }} />
+        <span style={{ fontSize: 17, fontWeight: 600, letterSpacing: '-.01em', color: 'var(--ink)', fontFamily: 'var(--font-system)' }}>
+          DailyFlow
+        </span>
+        <button
+          onClick={onProfile}
+          style={{ width: 34, height: 34, borderRadius: '50%', background: 'var(--soft)', border: 'none', cursor: 'pointer', display: 'flex', alignItems: 'center', justifyContent: 'center', flexShrink: 0 }}
+          className="active:scale-90 transition-transform"
+        >
+          {avatarLetter
+            ? <span style={{ fontSize: 14, fontWeight: 700, color: 'var(--ink)', fontFamily: 'var(--font-system)', lineHeight: 1 }}>{avatarLetter}</span>
+            : <svg width="17" height="17" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.8" strokeLinecap="round" strokeLinejoin="round" style={{ color: 'var(--muted)' }}><circle cx="12" cy="8" r="4"/><path d="M4 20c0-4 3.6-7 8-7s8 3 8 7"/></svg>
+          }
+        </button>
+      </div>
+
+      {/* Week calendar — clickable */}
+      <div style={{ display: 'flex', padding: '0 12px 10px', gap: 4 }}>
+        {week.map(({ label, num, date, isToday }, i) => {
+          const isSelected = selectedIdx === i
+          const highlight = isSelected || isToday
           return (
-            <div key={i} style={{ width: 36, height: 44, display: 'flex', flexDirection: 'column', alignItems: 'center', justifyContent: 'center', borderRadius: 10, background: isToday ? 'var(--ink)' : 'transparent', gap: 2 }}>
-              <span style={{ fontSize: 9, fontWeight: 500, letterSpacing: '.06em', textTransform: 'uppercase', color: isToday ? 'rgba(255,255,255,0.6)' : 'var(--muted)', fontFamily: 'var(--font-system)' }}>{dayShort[i]}</span>
-              <span style={{ fontSize: 15, fontWeight: isToday ? 700 : 400, color: isToday ? 'var(--paper)' : 'var(--ink)', fontFamily: 'var(--font-system)', lineHeight: 1 }}>{d.getDate()}</span>
-            </div>
+            <button
+              key={i}
+              onClick={() => handleDay(i, date)}
+              style={{
+                flex: 1, display: 'flex', flexDirection: 'column', alignItems: 'center', gap: 3,
+                padding: '6px 0', borderRadius: 12, border: 'none', cursor: 'pointer',
+                background: isSelected ? 'var(--ink)' : isToday ? 'var(--soft)' : 'transparent',
+                transition: 'background 0.18s',
+              }}
+              className="active:scale-95"
+            >
+              <span style={{
+                fontSize: 10, fontWeight: 500, letterSpacing: '.04em', textTransform: 'uppercase',
+                color: isSelected ? 'rgba(255,255,255,0.65)' : isToday ? 'var(--ink)' : 'var(--muted)',
+                fontFamily: 'var(--font-system)',
+              }}>
+                {label}
+              </span>
+              <span style={{
+                fontSize: 15, fontWeight: highlight ? 700 : 400, lineHeight: 1,
+                color: isSelected ? '#fff' : isToday ? 'var(--ink)' : 'var(--muted)',
+                fontFamily: 'var(--font-system)', fontVariantNumeric: 'tabular-nums',
+              }}>
+                {num}
+              </span>
+            </button>
           )
         })}
       </div>
@@ -167,12 +250,15 @@ function DesktopHeader({ tab }: { tab: Tab }) {
 }
 
 export default function App() {
-  const [tab, setTab] = useState<Tab>('today')
+  const [tab, setTab]               = useState<Tab>('today')
   const [showSplash, setShowSplash] = useState(true)
   const [showOnboarding, setShowOnboarding] = useState(false)
-  const [showProfile, setShowProfile] = useState(false)
+  const [showProfile, setShowProfile]       = useState(false)
   const [resetOnboarding, setResetOnboarding] = useState(false)
-  const [showAddSheet, setShowAddSheet] = useState(false)
+  const [showAddSheet, setShowAddSheet]     = useState(false)
+  const [selectedDay, setSelectedDay]       = useState<Date | null>(null)
+  const [scrolled, setScrolled]             = useState(false)
+  const mainRef = useRef<HTMLDivElement>(null)
 
   const { darkMode, settings } = useStore()
   const { user, loading: authLoading, initAuth, signOut } = useAuth()
@@ -184,8 +270,20 @@ export default function App() {
 
   useEffect(() => {
     const ink = ACCENT_COLORS[settings.accentColor]?.ink ?? '#1A1A1A'
-    document.documentElement.style.setProperty('--ink', darkMode ? (settings.accentColor === 'default' ? '#F2F2F7' : ink) : ink)
+    document.documentElement.style.setProperty('--ink',
+      darkMode ? (settings.accentColor === 'default' ? '#F2F2F7' : ink) : ink)
+    // Set paper-rgb for glassmorphism
+    if (darkMode) {
+      document.documentElement.style.setProperty('--paper-rgb', '17,17,16')
+    } else {
+      document.documentElement.style.setProperty('--paper-rgb', '242,242,247')
+    }
   }, [settings.accentColor, darkMode])
+
+  // Detect scroll for glass effect
+  const handleScroll = (e: React.UIEvent<HTMLDivElement>) => {
+    setScrolled(e.currentTarget.scrollTop > 10)
+  }
 
   const handleSplashDone = () => {
     setShowSplash(false)
@@ -209,77 +307,35 @@ export default function App() {
   const handleAdd = () => { if (tab === 'today' || tab === 'goals') setShowAddSheet(true) }
 
   return (
-    <div className={`${darkMode ? 'dark' : ''} h-dvh flex overflow-hidden`} style={{ background: 'var(--paper)', color: 'var(--ink)' }}>
+    <div className={`${darkMode ? 'dark' : ''} h-dvh flex flex-col overflow-hidden`} style={{ background: 'var(--paper)', color: 'var(--ink)' }}>
       {showOnboarding && <OnboardingTour onDone={() => setShowOnboarding(false)} />}
       {resetOnboarding && <OnboardingTour onDone={() => setResetOnboarding(false)} />}
 
-      {/* Desktop sidebar */}
-      <div className="hidden lg:block">
-        <DesktopSidebar tab={tab} setTab={setTab} displayName={displayName} avatarLetter={avatarLetter} onProfile={() => setShowProfile(true)} onAdd={handleAdd} />
+      {/* Glass header + calendar — mobile */}
+      <GlassHeader
+        scrolled={scrolled}
+        onDayPress={(date) => setSelectedDay(date)}
+        onProfile={() => setShowProfile(true)}
+        avatarLetter={avatarLetter}
+      />
+
+      {/* Content — scroll tracked for glass effect */}
+      <div
+        ref={mainRef}
+        className="flex-1 overflow-y-auto scroll-area"
+        onScroll={handleScroll}
+      >
+        <div className={tab === 'today'   ? 'block' : 'hidden'}><TodayView /></div>
+        <div className={tab === 'notes'   ? 'block' : 'hidden'}><NotesView /></div>
+        <div className={tab === 'goals'   ? 'block' : 'hidden'}><GoalsView /></div>
+        <div className={tab === 'summary' ? 'block' : 'hidden'}><SummaryView onOpenSettings={() => setShowProfile(true)} /></div>
       </div>
 
-      {/* Main area */}
-      <div className="flex-1 flex flex-col overflow-hidden min-w-0">
+      {/* Floating pill tab bar */}
+      <PillTabBar tab={tab} setTab={setTab} onAdd={handleAdd} />
 
-        {/* Mobile top bar */}
-        <div className="flex-shrink-0 flex items-center justify-between px-5 lg:hidden" style={{ paddingTop: 'calc(var(--safe-top) + 0.5rem)', paddingBottom: '0.25rem', background: 'var(--paper)' }}>
-          <div style={{ width: 36 }} />
-          <h1 style={{ fontFamily: 'var(--font-system)', fontSize: 17, fontWeight: 600, letterSpacing: '-.01em', color: 'var(--ink)', textAlign: 'center', flex: 1 }}>DailyFlow</h1>
-          <button onClick={() => setShowProfile(true)} className="active:scale-90 transition-transform" style={{ width: 34, height: 34, borderRadius: '50%', background: 'var(--soft)', display: 'flex', alignItems: 'center', justifyContent: 'center', flexShrink: 0, border: 'none', cursor: 'pointer' }}>
-            {avatarLetter
-              ? <span style={{ fontSize: 14, fontWeight: 600, color: 'var(--ink)', fontFamily: 'var(--font-system)', lineHeight: 1 }}>{avatarLetter}</span>
-              : <svg width="17" height="17" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.8" strokeLinecap="round" strokeLinejoin="round" style={{ color: 'var(--muted)' }}><circle cx="12" cy="8" r="4"/><path d="M4 20c0-4 3.6-7 8-7s8 3 8 7"/></svg>
-            }
-          </button>
-        </div>
-
-        {/* Mobile week calendar */}
-        <div className="lg:hidden"><WeekCalendar /></div>
-
-        {/* Desktop header */}
-        <div className="hidden lg:block"><DesktopHeader tab={tab} /></div>
-
-        {/* Mobile separator */}
-        <div className="lg:hidden" style={{ height: 1, background: 'var(--line)', flexShrink: 0 }} />
-
-        {/* Content */}
-        <main className="flex-1 overflow-hidden relative">
-          <div className={tab === 'today'   ? 'block h-full' : 'hidden'}><TodayView /></div>
-          <div className={tab === 'notes'   ? 'block h-full' : 'hidden'}><NotesView /></div>
-          <div className={tab === 'goals'   ? 'block h-full' : 'hidden'}><GoalsView /></div>
-          <div className={tab === 'summary' ? 'block h-full' : 'hidden'}><SummaryView onOpenSettings={() => setShowProfile(true)} /></div>
-        </main>
-
-        {/* Mobile tab bar */}
-        <nav className="lg:hidden" style={{ background: 'var(--white)', borderTop: '1px solid var(--line)', paddingBottom: 'var(--safe-bottom)', flexShrink: 0 }}>
-          <div className="flex items-end" style={{ height: 56 }}>
-            {tabs.slice(0, 2).map(({ id, label, Icon }) => {
-              const active = tab === id
-              return (
-                <button key={id} onClick={() => setTab(id)} className="flex-1 flex flex-col items-center justify-center gap-1 active:scale-90 transition-all duration-150 h-full" style={{ color: active ? 'var(--ink)' : 'var(--muted)', border: 'none', background: 'none', cursor: 'pointer' }}>
-                  <Icon active={active} />
-                  <span style={{ fontSize: 10, fontWeight: active ? 600 : 400, letterSpacing: '.02em', fontFamily: 'var(--font-system)' }}>{label}</span>
-                </button>
-              )
-            })}
-            <div className="flex-1 flex flex-col items-center justify-center h-full" style={{ paddingBottom: 8 }}>
-              <button onClick={handleAdd} className="active:scale-90 transition-transform" style={{ width: 44, height: 44, borderRadius: '50%', background: 'var(--ink)', color: 'var(--paper)', display: 'flex', alignItems: 'center', justifyContent: 'center', boxShadow: '0 2px 12px rgba(0,0,0,0.18)', border: 'none', cursor: 'pointer' }}>
-                <PlusIcon />
-              </button>
-            </div>
-            {tabs.slice(2, 4).map(({ id, label, Icon }) => {
-              const active = tab === id
-              return (
-                <button key={id} onClick={() => setTab(id)} className="flex-1 flex flex-col items-center justify-center gap-1 active:scale-90 transition-all duration-150 h-full" style={{ color: active ? 'var(--ink)' : 'var(--muted)', border: 'none', background: 'none', cursor: 'pointer' }}>
-                  <Icon active={active} />
-                  <span style={{ fontSize: 10, fontWeight: active ? 600 : 400, letterSpacing: '.02em', fontFamily: 'var(--font-system)' }}>{label}</span>
-                </button>
-              )
-            })}
-          </div>
-        </nav>
-      </div>
-
+      {/* Modals */}
+      {selectedDay && <DayDetailSheet date={selectedDay} onClose={() => setSelectedDay(null)} />}
       {showAddSheet && (tab === 'today' || tab === 'goals') && <AddSheetProxy tab={tab} onClose={() => setShowAddSheet(false)} />}
       {showProfile && (
         <ProfileSheet
