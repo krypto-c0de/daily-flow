@@ -31,8 +31,6 @@ export default function ProfileSheet({ onClose, onResetOnboarding, onSignOut }: 
 
   const setAccent = (color: AccentColor) => {
     updateSettings({ accentColor: color })
-    const val = ACCENT_COLORS[color].ink
-    document.documentElement.style.setProperty('--ink', val)
   }
 
   const clearData = () => {

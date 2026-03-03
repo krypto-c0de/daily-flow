@@ -11,7 +11,7 @@ interface Props {
 }
 
 export default function SettingsSheet({ onClose, onResetOnboarding, onSignOut }: Props) {
-  const { settings, updateSettings, darkMode, toggleDarkMode, notificationsEnabled, toggleNotifications } = useStore()
+  const { settings, updateSettings, notificationsEnabled, toggleNotifications } = useStore()
   const { user } = useAuth()
   const offlineMode = localStorage.getItem('dailyflow-offline-mode') === '1'
 
@@ -24,11 +24,6 @@ export default function SettingsSheet({ onClose, onResetOnboarding, onSignOut }:
 
   const setAccent = (color: AccentColor) => {
     updateSettings({ accentColor: color })
-    const val = ACCENT_COLORS[color].ink
-    document.documentElement.style.setProperty('--ink', darkMode
-      ? (color === 'default' ? '#F0EFE8' : val)
-      : val
-    )
   }
 
   const clearData = () => {
@@ -136,13 +131,6 @@ export default function SettingsSheet({ onClose, onResetOnboarding, onSignOut }:
 
           {/* Toggles */}
           <div className="rounded-2xl" style={{ background: 'var(--white)', overflow: 'hidden' }}>
-            <div className="flex items-center justify-between px-4 py-4" style={{ borderBottom: '1px solid var(--soft)' }}>
-              <div>
-                <p className="text-[15px] font-medium" style={{ color: 'var(--ink)' }}>🌙 Modo Escuro</p>
-                <p className="text-[12px]" style={{ color: 'var(--muted)' }}>Tema dark para o app</p>
-              </div>
-              <Toggle checked={darkMode} onChange={toggleDarkMode} />
-            </div>
             <div className="flex items-center justify-between px-4 py-4">
               <div>
                 <p className="text-[15px] font-medium" style={{ color: 'var(--ink)' }}>🔔 Lembrete diário</p>

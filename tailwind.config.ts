@@ -5,8 +5,8 @@ export default {
   theme: {
     extend: {
       fontFamily: {
-        display: ['"DM Serif Display"', 'Georgia', 'serif'],
-        body: ['"DM Sans"', 'system-ui', 'sans-serif'],
+        display: ['var(--font-system)'],
+        body: ['var(--font-system)'],
       },
       colors: {
         ink: '#1A1A1A',

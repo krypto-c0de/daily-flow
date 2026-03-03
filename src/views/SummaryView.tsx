@@ -120,7 +120,7 @@ export default function SummaryView({ onOpenSettings }: { onOpenSettings?: () =>
 
         {/* Evolution chart */}
         <div className="rounded-2xl p-4 fade-up fade-up-2" style={{ background: 'var(--white)' }}>
-          <div className="flex items-center justify-between mb-4">
+          <div className="flex items-center justify-between mb-5">
             <p style={{ fontSize: 13, fontWeight: 700, color: 'var(--ink)', fontFamily: 'var(--font-system)' }}>Evolução</p>
             <div className="flex gap-1">
               {(['7','30'] as const).map(m => (
@@ -131,14 +131,14 @@ export default function SummaryView({ onOpenSettings }: { onOpenSettings?: () =>
             </div>
           </div>
           {/* Bar chart */}
-          <div style={{ display: 'flex', alignItems: 'flex-end', gap: chartMode==='7'?6:2, height: 80 }}>
+          <div style={{ display: 'flex', alignItems: 'flex-end', gap: chartMode==='7'?6:2, height: 72 }}>
             {chartData.map(({dk,pct,total}) => {
               const isToday = dk===today
-              const barH = total===0 ? 4 : Math.max(4, (pct/maxPct)*80)
+              const barH = total===0 ? 4 : Math.max(4, (pct/maxPct)*72)
               const color = pct===100?'#34C759':pct>0?'var(--ink)':'var(--line)'
               return (
                 <div key={dk} style={{ flex: 1, display: 'flex', flexDirection: 'column', alignItems: 'center', gap: 2 }}>
-                  <div style={{ width: '100%', height: 80, display: 'flex', alignItems: 'flex-end' }}>
+                  <div style={{ width: '100%', height: 72, display: 'flex', alignItems: 'flex-end' }}>
                     <div style={{ width: '100%', height: animated?barH:4, background: color, borderRadius: '4px 4px 0 0', opacity: total===0?0.25:1, transition: 'height 0.6s cubic-bezier(0.4,0,0.2,1)', outline: isToday?'2px solid var(--ink)':'none', outlineOffset: 1 }} />
                   </div>
                   {chartMode==='7' && <span style={{ fontSize: 8, color: isToday?'var(--ink)':'var(--muted)', fontWeight: isToday?700:400, fontFamily: 'var(--font-system)' }}>{dayLabel(dk).slice(0,3)}</span>}
@@ -245,18 +245,6 @@ export default function SummaryView({ onOpenSettings }: { onOpenSettings?: () =>
               </div>
             </div>
           )}
-        </div>
-
-        {/* Quote category */}
-        <div className="rounded-2xl p-4" style={{ background: 'var(--white)' }}>
-          <p style={{ fontSize: 15, fontWeight: 600, color: 'var(--ink)', fontFamily: 'var(--font-system)', marginBottom: 10 }}>💬 Categoria de citações</p>
-          <div className="grid grid-cols-2 gap-2">
-            {([['all','Todas'],['motivacional','Motivacional'],['stoic','Estoico'],['productivity','Produtividade']] as const).map(([v,l])=>(
-              <button key={v} onClick={()=>updateSettings({quoteCategory:v})} style={{ padding: '10px', borderRadius: 12, border: `1.5px solid ${settings.quoteCategory===v?'var(--ink)':'var(--line)'}`, background: settings.quoteCategory===v?'var(--ink)':'var(--white)', color: settings.quoteCategory===v?'var(--paper)':'var(--ink)', fontSize: 13, fontWeight: 600, fontFamily: 'var(--font-system)', cursor: 'pointer', transition: 'all 0.15s' }}>
-                {l}
-              </button>
-            ))}
-          </div>
         </div>
 
         <div className="h-4" />

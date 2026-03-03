@@ -130,13 +130,14 @@ export default function TaskRow({ task, goal, isLast }: Props) {
             onClick={handleCheck}
             className={`flex-shrink-0 w-[22px] h-[22px] rounded-full border-[1.5px] flex items-center justify-center transition-all duration-200 ${popping ? 'check-pop' : ''}`}
             style={{
-              background: task.isCompleted ? 'var(--ink)' : 'transparent',
-              borderColor: task.isCompleted ? 'var(--ink)' : 'var(--line)',
+              background: task.isCompleted ? 'var(--white)' : 'transparent',
+              borderColor: task.isCompleted ? '#34C759' : 'var(--line)',
+              color: task.isCompleted ? '#34C759' : 'var(--muted)',
             }}
           >
             {task.isCompleted && (
               <svg width="10" height="8" viewBox="0 0 10 8" fill="none">
-                <path d="M1 4L3.5 6.5L9 1" stroke="white" strokeWidth="1.8" strokeLinecap="round" strokeLinejoin="round"/>
+                <path d="M1 4L3.5 6.5L9 1" stroke="currentColor" strokeWidth="1.8" strokeLinecap="round" strokeLinejoin="round"/>
               </svg>
             )}
           </button>
@@ -241,13 +242,14 @@ export default function TaskRow({ task, goal, isLast }: Props) {
                   onClick={() => toggleSubtask(task.id, sub.id)}
                   className="w-4 h-4 rounded border flex-shrink-0 flex items-center justify-center transition-all"
                   style={{
-                    background: sub.isCompleted ? 'var(--ink)' : 'transparent',
-                    borderColor: sub.isCompleted ? 'var(--ink)' : 'var(--line)',
+                    background: sub.isCompleted ? 'var(--white)' : 'transparent',
+                    borderColor: sub.isCompleted ? '#34C759' : 'var(--line)',
+                    color: sub.isCompleted ? '#34C759' : 'var(--muted)',
                   }}
                 >
                   {sub.isCompleted && (
                     <svg width="8" height="6" viewBox="0 0 8 6" fill="none">
-                      <path d="M1 3L3 5L7 1" stroke="white" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round"/>
+                      <path d="M1 3L3 5L7 1" stroke="currentColor" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round"/>
                     </svg>
                   )}
                 </button>

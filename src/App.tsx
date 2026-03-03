@@ -11,10 +11,7 @@ import ProfileSheet from './components/ProfileSheet'
 import AuthScreen from './components/AuthScreen'
 import DayDetailSheet from './components/DayDetailSheet'
 import DailyReflectionSheet from './components/DailyReflectionSheet'
-import BadgesSheet from './components/BadgesSheet'
-import AddTaskSheet from './components/AddTaskSheet'
-import AddGoalSheet from './components/AddGoalSheet'
-import { ACCENT_COLORS, DAILY_QUOTES, toDateKey } from './models/types'
+import { ACCENT_COLORS, toDateKey } from './models/types'
 
 type Tab = 'today' | 'notes' | 'goals' | 'summary'
 
@@ -51,68 +48,91 @@ const tabs: { id: Tab; label: string; Icon: React.FC<{ active: boolean }> }[] = 
   { id: 'summary', label: 'Resumo', Icon: SummaryIcon },
 ]
 
-/* ── Pill Tab Bar — fixed at bottom, no glass ── */
-function PillTabBar({ tab, setTab, onAdd }: { tab: Tab; setTab: (t: Tab) => void; onAdd: () => void }) {
+/* ── Pill Tab Bar — iOS glass / floating ── */
+function PillTabBar({ tab, setTab }: { tab: Tab; setTab: (t: Tab) => void }) {
+  const glassBg = 'rgba(var(--paper-rgb,242,242,247),0.55)'
+  const glassBgStrong = 'rgba(var(--paper-rgb,242,242,247),0.78)'
+  const glassBorder = 'rgba(255,255,255,0.10)'
+  const shadow = '0 12px 36px rgba(0,0,0,0.22)'
+
   return (
     <div style={{
       flexShrink: 0,
-      paddingBottom: 'calc(var(--safe-bottom) + 12px)',
-      paddingTop: 10, paddingLeft: 14, paddingRight: 14,
-      background: 'var(--paper)',
+      paddingBottom: 'calc(var(--safe-bottom) + 4px)',
+      paddingTop: 6, paddingLeft: 12, paddingRight: 12,
+      background: 'transparent',
+      position: 'sticky',
+      bottom: 0,
+      zIndex: 40,
     }}>
       <div style={{
-        background: 'var(--white)', borderRadius: 36,
-        display: 'flex', alignItems: 'center', padding: '5px',
-        boxShadow: '0 1px 16px rgba(0,0,0,0.08), 0 0 0 1px var(--line)',
-        gap: 2,
+        position: 'relative',
+        overflow: 'visible',
+        background: glassBg,
+        borderRadius: 28,
+        border: `1px solid ${glassBorder}`,
+        backdropFilter: 'blur(26px) saturate(1.8)',
+        WebkitBackdropFilter: 'blur(26px) saturate(1.8)',
+        boxShadow: shadow,
+        display: 'flex',
+        alignItems: 'flex-end',
+        justifyContent: 'space-between',
+        padding: '8px 8px 10px',
+        gap: 4,
       }}>
-        {tabs.slice(0, 2).map(({ id, label, Icon }) => {
+        {tabs.map(({ id, label, Icon }) => {
           const active = tab === id
           return (
-            <button key={id} onClick={() => setTab(id)} className="active:scale-95"
+            <button
+              key={id}
+              onClick={() => setTab(id)}
+              className="active:scale-95"
               style={{
-                flex: active ? '1.6' : '1', display: 'flex', alignItems: 'center', justifyContent: 'center',
-                flexDirection: 'row', gap: active ? 5 : 0, padding: '10px 6px', borderRadius: 30,
-                background: active ? 'var(--ink)' : 'transparent',
-                color: active ? 'var(--paper)' : 'var(--muted)',
-                border: 'none', cursor: 'pointer',
-                transition: 'all 0.22s cubic-bezier(0.4,0,0.2,1)',
-                overflow: 'hidden', minWidth: 0, whiteSpace: 'nowrap',
+                flex: 1,
+                minWidth: 0,
+                border: 'none',
+                background: 'transparent',
+                cursor: 'pointer',
+                padding: 0,
+                color: active ? 'var(--ink)' : 'var(--muted)',
+                display: 'flex',
+                flexDirection: 'column',
+                alignItems: 'center',
+                justifyContent: 'flex-end',
+                gap: 4,
+                position: 'relative',
+                height: 48,
+              }}
+            >
+              <div style={{
+                width: 44,
+                height: 44,
+                borderRadius: 22,
+                background: active ? glassBgStrong : 'transparent',
+                border: active ? `1px solid ${glassBorder}` : '1px solid transparent',
+                backdropFilter: active ? 'blur(26px) saturate(1.8)' : 'none',
+                WebkitBackdropFilter: active ? 'blur(26px) saturate(1.8)' : 'none',
+                boxShadow: active ? '0 8px 18px rgba(0,0,0,0.18)' : 'none',
+                transform: active ? 'translateY(-16px)' : 'translateY(0)',
+                transition: 'transform 0.22s cubic-bezier(0.32, 0.72, 0, 1), background 0.22s, box-shadow 0.22s',
+                display: 'flex',
+                alignItems: 'center',
+                justifyContent: 'center',
               }}>
-              <Icon active={active} />
-              {active && <span style={{ fontSize: 12, fontWeight: 700, letterSpacing: '-.01em', fontFamily: 'var(--font-system)' }}>{label}</span>}
-            </button>
-          )
-        })}
-
-        {/* Center + button */}
-        <button onClick={onAdd} className="active:scale-90 transition-transform"
-          style={{
-            width: 40, height: 40, borderRadius: '50%', flexShrink: 0,
-            background: 'transparent', color: 'var(--muted)',
-            border: '1.5px dashed var(--muted)', cursor: 'pointer',
-            display: 'flex', alignItems: 'center', justifyContent: 'center',
-          }}>
-          <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round">
-            <path d="M12 5v14M5 12h14"/>
-          </svg>
-        </button>
-
-        {tabs.slice(2, 4).map(({ id, label, Icon }) => {
-          const active = tab === id
-          return (
-            <button key={id} onClick={() => setTab(id)} className="active:scale-95"
-              style={{
-                flex: active ? '1.6' : '1', display: 'flex', alignItems: 'center', justifyContent: 'center',
-                flexDirection: 'row', gap: active ? 5 : 0, padding: '10px 6px', borderRadius: 30,
-                background: active ? 'var(--ink)' : 'transparent',
-                color: active ? 'var(--paper)' : 'var(--muted)',
-                border: 'none', cursor: 'pointer',
-                transition: 'all 0.22s cubic-bezier(0.4,0,0.2,1)',
-                overflow: 'hidden', minWidth: 0, whiteSpace: 'nowrap',
+                <Icon active={active} />
+              </div>
+              <span style={{
+                fontSize: 10,
+                fontWeight: active ? 700 : 600,
+                letterSpacing: '-.01em',
+                fontFamily: 'var(--font-system)',
+                opacity: active ? 1 : 0.85,
+                transform: active ? 'translateY(-6px)' : 'translateY(0)',
+                transition: 'transform 0.22s cubic-bezier(0.32, 0.72, 0, 1)',
+                whiteSpace: 'nowrap',
               }}>
-              <Icon active={active} />
-              {active && <span style={{ fontSize: 12, fontWeight: 700, letterSpacing: '-.01em', fontFamily: 'var(--font-system)' }}>{label}</span>}
+                {label}
+              </span>
             </button>
           )
         })}
@@ -121,26 +141,16 @@ function PillTabBar({ tab, setTab, onAdd }: { tab: Tab; setTab: (t: Tab) => void
   )
 }
 
-/* ── Daily quote ── */
-function getDailyQuote(category?: string) {
-  const pools = category === 'all' || !category
-    ? [...DAILY_QUOTES.motivacional, ...DAILY_QUOTES.stoic, ...DAILY_QUOTES.productivity]
-    : DAILY_QUOTES[category] ?? DAILY_QUOTES.motivacional
-  const dayIdx = Math.floor(Date.now() / 86400000) % pools.length
-  return pools[dayIdx]
-}
-
 /* ── Glass header with sticky scroll effect ── */
-function GlassHeader({ scrolled, avatarLetter, onProfile, onDayPress, streak, quoteCategory, onReflection, onBadges }: {
+function GlassHeader({ scrolled, avatarLetter, onProfile, onDayPress, onReflection }: {
   scrolled: boolean; avatarLetter: string; onProfile: () => void
-  onDayPress: (date: Date) => void; streak: number; quoteCategory?: string
-  onReflection: () => void; onBadges: () => void
+  onDayPress: (date: Date) => void
+  onReflection: () => void
 }) {
   const today = new Date()
   const dow = today.getDay()
   const DAY = ['Dom','Seg','Ter','Qua','Qui','Sex','Sáb']
   const [selIdx, setSelIdx] = useState(dow)
-  const quote = getDailyQuote(quoteCategory)
 
   const week = Array.from({ length: 7 }, (_, i) => {
     const d = new Date(today); d.setDate(today.getDate() - dow + i)
@@ -150,28 +160,22 @@ function GlassHeader({ scrolled, avatarLetter, onProfile, onDayPress, streak, qu
   return (
     <div style={{
       flexShrink: 0, paddingTop: 'calc(var(--safe-top) + 6px)',
-      background: scrolled ? 'rgba(var(--paper-rgb,242,242,247),0.82)' : 'var(--paper)',
-      backdropFilter: scrolled ? 'blur(20px) saturate(1.8)' : 'none',
-      WebkitBackdropFilter: scrolled ? 'blur(20px) saturate(1.8)' : 'none',
-      borderBottom: `1px solid ${scrolled ? 'var(--line)' : 'transparent'}`,
-      transition: 'background 0.2s ease, border-color 0.2s ease',
+      background: scrolled ? 'rgba(var(--paper-rgb,242,242,247),0.72)' : 'var(--paper)',
+      backdropFilter: scrolled ? 'blur(24px) saturate(2)' : 'none',
+      WebkitBackdropFilter: scrolled ? 'blur(24px) saturate(2)' : 'none',
+      borderBottom: `1px solid ${scrolled ? 'rgba(0,0,0,0.06)' : 'transparent'}`,
+      boxShadow: scrolled ? '0 4px 24px -4px rgba(0,0,0,0.12), 0 1px 0 0 rgba(255,255,255,0.5) inset' : 'none',
+      transition: 'background 0.2s ease, border-color 0.2s ease, box-shadow 0.2s ease',
       position: 'sticky', top: 0, zIndex: 30,
+      isolation: 'isolate',
     }}>
       {/* Top row */}
-      <div style={{ display: 'flex', alignItems: 'center', padding: '0 16px 6px', gap: 8 }}>
-        {/* Streak badge */}
-        <button onClick={onBadges} style={{ display: 'flex', alignItems: 'center', gap: 4, padding: '4px 8px', borderRadius: 20, background: streak > 0 ? 'var(--ink)' : 'var(--soft)', border: 'none', cursor: 'pointer' }}>
-          <span style={{ fontSize: 13 }}>🔥</span>
-          <span style={{ fontSize: 12, fontWeight: 700, color: streak > 0 ? 'var(--paper)' : 'var(--muted)', fontFamily: 'var(--font-system)' }}>{streak}</span>
-        </button>
-
-        {/* App name centered */}
-        <span style={{ flex: 1, fontSize: 17, fontWeight: 600, letterSpacing: '-.01em', color: 'var(--ink)', fontFamily: 'var(--font-system)', textAlign: 'center' }}>
+      <div style={{ display: 'grid', gridTemplateColumns: '1fr auto 1fr', alignItems: 'center', padding: '0 16px 6px' }}>
+        <div />
+        <span style={{ fontSize: 17, fontWeight: 600, letterSpacing: '-.01em', color: 'var(--ink)', fontFamily: 'var(--font-system)', textAlign: 'center' }}>
           DailyFlow
         </span>
-
-        {/* Profile + reflection */}
-        <div style={{ display: 'flex', alignItems: 'center', gap: 6 }}>
+        <div style={{ display: 'flex', alignItems: 'center', gap: 6, justifySelf: 'end' }}>
           <button onClick={onReflection} style={{ width: 32, height: 32, borderRadius: '50%', background: 'var(--soft)', border: 'none', cursor: 'pointer', display: 'flex', alignItems: 'center', justifyContent: 'center', fontSize: 15 }}>
             🧘
           </button>
@@ -183,15 +187,6 @@ function GlassHeader({ scrolled, avatarLetter, onProfile, onDayPress, streak, qu
           </button>
         </div>
       </div>
-
-      {/* Daily quote — only when not scrolled */}
-      {!scrolled && (
-        <div style={{ padding: '0 16px 8px' }}>
-          <p style={{ fontSize: 11, color: 'var(--muted)', fontFamily: 'var(--font-system)', fontStyle: 'italic', lineHeight: 1.4 }}>
-            "{quote.text}" <span style={{ fontStyle: 'normal', fontWeight: 600 }}>— {quote.author}</span>
-          </p>
-        </div>
-      )}
 
       {/* Clickable week calendar */}
       <div style={{ display: 'flex', padding: '0 10px 10px', gap: 2 }}>
@@ -216,21 +211,6 @@ function GlassHeader({ scrolled, avatarLetter, onProfile, onDayPress, streak, qu
   )
 }
 
-/* ── Badge unlock toast ── */
-function BadgeToast({ badges, onDone }: { badges: { emoji: string; title: string }[]; onDone: () => void }) {
-  useEffect(() => { const t = setTimeout(onDone, 3500); return () => clearTimeout(t) }, [onDone])
-  return (
-    <div style={{ position: 'fixed', top: 'calc(var(--safe-top) + 80px)', left: '50%', transform: 'translateX(-50%)', zIndex: 200, display: 'flex', flexDirection: 'column', gap: 8, alignItems: 'center' }}>
-      {badges.map((b, i) => (
-        <div key={i} className="fade-up" style={{ background: 'var(--ink)', color: 'var(--paper)', borderRadius: 20, padding: '10px 18px', display: 'flex', alignItems: 'center', gap: 8, boxShadow: '0 4px 20px rgba(0,0,0,0.2)', whiteSpace: 'nowrap' }}>
-          <span style={{ fontSize: 18 }}>{b.emoji}</span>
-          <span style={{ fontSize: 13, fontWeight: 700, fontFamily: 'var(--font-system)' }}>Conquista desbloqueada: {b.title}</span>
-        </div>
-      ))}
-    </div>
-  )
-}
-
 /* ── Main App ── */
 export default function App() {
   const [tab, setTab]                           = useState<Tab>('today')
@@ -238,14 +218,11 @@ export default function App() {
   const [showOnboarding, setShowOnboarding]     = useState(false)
   const [showProfile, setShowProfile]           = useState(false)
   const [resetOnboarding, setResetOnboarding]   = useState(false)
-  const [showAddSheet, setShowAddSheet]         = useState(false)
   const [selectedDay, setSelectedDay]           = useState<Date | null>(null)
   const [scrolled, setScrolled]                 = useState(false)
   const [showReflection, setShowReflection]     = useState(false)
-  const [showBadges, setShowBadges]             = useState(false)
-  const [newBadges, setNewBadges]               = useState<{ emoji: string; title: string }[]>([])
 
-  const { darkMode, settings, getCurrentStreak, checkAndUnlockBadges, getBadges } = useStore()
+  const { settings } = useStore()
   const { user, loading: authLoading, initAuth, signOut } = useAuth()
   const offlineMode = localStorage.getItem('dailyflow-offline-mode') === '1'
   const isAuthenticated = !!user || offlineMode
@@ -253,44 +230,19 @@ export default function App() {
   useEffect(() => { const unsub = initAuth(); return unsub }, [])
 
   useEffect(() => {
-    const accentInk = ACCENT_COLORS[settings.accentColor]?.ink ?? '#1A1A1A'
+    if (useStore.getState().darkMode) useStore.setState({ darkMode: false })
+  }, [])
 
-    // In dark mode, we need to update BOTH text and surface colors.
-    // Otherwise we'd end up with light text on light backgrounds.
-    if (darkMode) {
-      document.documentElement.style.setProperty('--ink', '#F2F2F7')
-      document.documentElement.style.setProperty('--paper', '#111110')
-      document.documentElement.style.setProperty('--white', '#1C1C1E')
-      document.documentElement.style.setProperty('--soft', '#2C2C2E')
-      document.documentElement.style.setProperty('--line', '#2C2C2E')
-      document.documentElement.style.setProperty('--muted', '#A1A1AA')
-      document.documentElement.style.setProperty('--paper-rgb', '17,17,16')
-    } else {
-      document.documentElement.style.setProperty('--ink', accentInk)
-      document.documentElement.style.setProperty('--paper', '#E8E8ED')
-      document.documentElement.style.setProperty('--white', '#F5F5FA')
-      document.documentElement.style.setProperty('--soft', '#E0E0E6')
-      document.documentElement.style.setProperty('--line', '#D8D8DD')
-      document.documentElement.style.setProperty('--muted', '#8E8E93')
-      document.documentElement.style.setProperty('--paper-rgb', '242,242,247')
-    }
-  }, [settings.accentColor, darkMode])
-
-  // Check badges periodically
   useEffect(() => {
-    if (!isAuthenticated) return
-    const check = () => {
-      const unlocked = checkAndUnlockBadges()
-      if (unlocked.length > 0) {
-        const all = getBadges()
-        const details = unlocked.map(id => all.find(b => b.id === id)).filter(Boolean) as { emoji: string; title: string }[]
-        setNewBadges(details)
-      }
-    }
-    check()
-    const t = setInterval(check, 30000)
-    return () => clearInterval(t)
-  }, [isAuthenticated])
+    const accentInk = ACCENT_COLORS[settings.accentColor]?.ink ?? '#1A1A1A'
+    document.documentElement.style.setProperty('--ink', accentInk)
+    document.documentElement.style.setProperty('--paper', '#E8E8ED')
+    document.documentElement.style.setProperty('--white', '#F5F5FA')
+    document.documentElement.style.setProperty('--soft', '#E0E0E6')
+    document.documentElement.style.setProperty('--line', '#D8D8DD')
+    document.documentElement.style.setProperty('--muted', '#8E8E93')
+    document.documentElement.style.setProperty('--paper-rgb', '242,242,247')
+  }, [settings.accentColor])
 
   // Auto-show reflection at end of day
   useEffect(() => {
@@ -311,25 +263,23 @@ export default function App() {
     if (!settings.onboardingDone && isAuthenticated) setShowOnboarding(true)
   }
 
-  if (showSplash) return <div className={darkMode ? 'dark' : ''} style={{ background: 'var(--paper)' }}><SplashScreen onDone={handleSplashDone} /></div>
+  if (showSplash) return <div style={{ background: 'var(--paper)' }}><SplashScreen onDone={handleSplashDone} /></div>
 
   if (authLoading && !offlineMode) return (
-    <div className={`${darkMode ? 'dark' : ''} h-dvh flex items-center justify-center`} style={{ background: '#080808' }}>
+    <div className="h-dvh flex items-center justify-center" style={{ background: '#080808' }}>
       <svg className="animate-spin" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="rgba(255,255,255,0.4)" strokeWidth="2">
         <path d="M21 12a9 9 0 11-18 0 9 9 0 0118 0z" opacity="0.15"/><path d="M21 12a9 9 0 00-9-9"/>
       </svg>
     </div>
   )
 
-  if (!isAuthenticated) return <div className={darkMode ? 'dark' : ''} style={{ background: 'var(--paper)' }}><AuthScreen /></div>
+  if (!isAuthenticated) return <div style={{ background: 'var(--paper)' }}><AuthScreen /></div>
 
   const displayName = settings.name || user?.user_metadata?.full_name || user?.email?.split('@')[0] || ''
   const avatarLetter = displayName[0]?.toUpperCase() ?? ''
-  const streak = getCurrentStreak()
-  const handleAdd = () => { if (tab === 'today' || tab === 'goals') setShowAddSheet(true) }
 
   return (
-    <div className={`${darkMode ? 'dark' : ''} h-dvh flex flex-col overflow-hidden`} style={{ background: 'var(--paper)', color: 'var(--ink)' }}>
+    <div className="h-dvh flex flex-col overflow-hidden" style={{ background: 'var(--paper)', color: 'var(--ink)' }}>
       {showOnboarding && <OnboardingTour onDone={() => setShowOnboarding(false)} />}
       {resetOnboarding && <OnboardingTour onDone={() => setResetOnboarding(false)} />}
 
@@ -344,10 +294,7 @@ export default function App() {
           avatarLetter={avatarLetter}
           onProfile={() => setShowProfile(true)}
           onDayPress={date => setSelectedDay(date)}
-          streak={streak}
-          quoteCategory={settings.quoteCategory}
           onReflection={() => setShowReflection(true)}
-          onBadges={() => setShowBadges(true)}
         />
 
         <div style={{ flex: 1 }}>
@@ -359,16 +306,11 @@ export default function App() {
       </div>
 
       {/* Floating pill navbar */}
-      <PillTabBar tab={tab} setTab={setTab} onAdd={handleAdd} />
+      <PillTabBar tab={tab} setTab={setTab} />
 
       {/* Modals */}
       {selectedDay   && <DayDetailSheet date={selectedDay} onClose={() => setSelectedDay(null)} />}
       {showReflection && <DailyReflectionSheet onClose={() => setShowReflection(false)} />}
-      {showBadges    && <BadgesSheet onClose={() => setShowBadges(false)} />}
-      {newBadges.length > 0 && <BadgeToast badges={newBadges} onDone={() => setNewBadges([])} />}
-      {showAddSheet && (tab === 'today' || tab === 'goals') && (
-        tab === 'today' ? <AddTaskSheet onClose={() => setShowAddSheet(false)} /> : <AddGoalSheet onClose={() => setShowAddSheet(false)} />
-      )}
       {showProfile && (
         <ProfileSheet
           onClose={() => setShowProfile(false)}

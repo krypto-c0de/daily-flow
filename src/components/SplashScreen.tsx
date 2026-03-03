@@ -60,7 +60,7 @@ export default function SplashScreen({ onDone }: { onDone: () => void }) {
           <h1
             className={`splash-title ${phase !== 'in' ? 'visible' : ''}`}
             style={{
-              fontFamily: '"DM Serif Display", Georgia, serif',
+              fontFamily: 'var(--font-system)',
               fontSize: 'clamp(36px, 10vw, 52px)',
               color: '#fff',
               letterSpacing: '-.04em',

@@ -127,7 +127,7 @@ export default function AuthScreen() {
         }
         /* ── left panel quote ── */
         .auth-quote {
-          font-family: 'DM Serif Display', Georgia, serif;
+          font-family: var(--font-system);
           font-size: clamp(36px, 3.8vw, 60px);
           line-height: 1.1;
           letter-spacing: -.03em;
@@ -172,7 +172,7 @@ export default function AuthScreen() {
           <div style={{ display:'flex', alignItems:'center', gap:8 }}>
             <span style={{
               color:'#fff', fontWeight:700, letterSpacing:'-.02em',
-              fontFamily:'"DM Serif Display", serif', fontSize:18,
+              fontFamily:'var(--font-system)', fontSize:18,
             }}>
               DailyFlow
             </span>
@@ -200,7 +200,7 @@ export default function AuthScreen() {
           {/* Subtle corner number */}
           <span style={{
             position:'absolute', bottom:40, right:48,
-            fontFamily:'"DM Serif Display", serif',
+            fontFamily:'var(--font-system)',
             fontSize:120, lineHeight:1,
             color:'rgba(255,255,255,0.03)',
             userSelect:'none', pointerEvents:'none',
@@ -223,14 +223,14 @@ export default function AuthScreen() {
             >
               <span style={{
                 color:'#fff', fontWeight:700, letterSpacing:'-.03em',
-                fontFamily:'"DM Serif Display", serif', fontSize:22,
+                fontFamily:'var(--font-system)', fontSize:22,
               }}>DailyFlow</span>
             </div>
 
             {/* Heading */}
             <div className="auth-slide-up mb-8" style={{ animationDelay:'.08s' }}>
               <h1 style={{
-                fontFamily:'"DM Serif Display", Georgia, serif',
+                fontFamily:'var(--font-system)',
                 fontSize:'clamp(26px, 4vw, 32px)',
                 color:'#fff', letterSpacing:'-.03em', lineHeight:1.15, marginBottom:6,
               }}>
