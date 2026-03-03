@@ -202,12 +202,12 @@ function GlassHeader({ scrolled, avatarLetter, onProfile, onDayPress, streak, qu
               className="active:scale-95"
               style={{
                 flex: 1, display: 'flex', flexDirection: 'column', alignItems: 'center', gap: 2,
-                padding: '6px 2px', borderRadius: 10, border: 'none', cursor: 'pointer',
+                padding: '6px 2px', borderRadius: 12, border: '1px solid var(--line)', cursor: 'pointer',
                 background: isSel ? 'var(--ink)' : isToday ? 'var(--soft)' : 'transparent',
-                transition: 'background 0.15s',
+                transition: 'background 0.15s, border-color 0.15s',
               }}>
-              <span style={{ fontSize: 9, fontWeight: 600, letterSpacing: '.05em', textTransform: 'uppercase', fontFamily: 'var(--font-system)', color: isSel ? 'rgba(255,255,255,0.55)' : isToday ? 'var(--ink)' : 'var(--muted)' }}>{label}</span>
-              <span style={{ fontSize: 15, fontWeight: (isSel||isToday) ? 700 : 400, lineHeight: 1, fontFamily: 'var(--font-system)', fontVariantNumeric: 'tabular-nums', color: isSel ? '#fff' : isToday ? 'var(--ink)' : 'var(--muted)' }}>{num}</span>
+              <span style={{ fontSize: 9, fontWeight: 600, letterSpacing: '.05em', textTransform: 'uppercase', fontFamily: 'var(--font-system)', color: isSel ? 'var(--paper)' : isToday ? 'var(--ink)' : 'var(--muted)', opacity: isSel ? 0.7 : 1 }}>{label}</span>
+              <span style={{ fontSize: 15, fontWeight: (isSel||isToday) ? 700 : 400, lineHeight: 1, fontFamily: 'var(--font-system)', fontVariantNumeric: 'tabular-nums', color: isSel ? 'var(--paper)' : isToday ? 'var(--ink)' : 'var(--muted)' }}>{num}</span>
             </button>
           )
         })}
@@ -253,9 +253,27 @@ export default function App() {
   useEffect(() => { const unsub = initAuth(); return unsub }, [])
 
   useEffect(() => {
-    const ink = ACCENT_COLORS[settings.accentColor]?.ink ?? '#1A1A1A'
-    document.documentElement.style.setProperty('--ink', darkMode ? (settings.accentColor === 'default' ? '#F2F2F7' : ink) : ink)
-    document.documentElement.style.setProperty('--paper-rgb', darkMode ? '17,17,16' : '242,242,247')
+    const accentInk = ACCENT_COLORS[settings.accentColor]?.ink ?? '#1A1A1A'
+
+    // In dark mode, we need to update BOTH text and surface colors.
+    // Otherwise we'd end up with light text on light backgrounds.
+    if (darkMode) {
+      document.documentElement.style.setProperty('--ink', '#F2F2F7')
+      document.documentElement.style.setProperty('--paper', '#111110')
+      document.documentElement.style.setProperty('--white', '#1C1C1E')
+      document.documentElement.style.setProperty('--soft', '#2C2C2E')
+      document.documentElement.style.setProperty('--line', '#2C2C2E')
+      document.documentElement.style.setProperty('--muted', '#A1A1AA')
+      document.documentElement.style.setProperty('--paper-rgb', '17,17,16')
+    } else {
+      document.documentElement.style.setProperty('--ink', accentInk)
+      document.documentElement.style.setProperty('--paper', '#E8E8ED')
+      document.documentElement.style.setProperty('--white', '#F5F5FA')
+      document.documentElement.style.setProperty('--soft', '#E0E0E6')
+      document.documentElement.style.setProperty('--line', '#D8D8DD')
+      document.documentElement.style.setProperty('--muted', '#8E8E93')
+      document.documentElement.style.setProperty('--paper-rgb', '242,242,247')
+    }
   }, [settings.accentColor, darkMode])
 
   // Check badges periodically

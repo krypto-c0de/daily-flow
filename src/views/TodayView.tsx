@@ -14,7 +14,7 @@ function getGreeting(name?: string) {
 }
 
 export default function TodayView() {
-  const { goals, tasksForDate, summaryForDate, reorderTasks, focusMode, toggleFocusMode, seedRecurringTasks, settings } = useStore()
+  const { goals, tasksForDate, summaryForDate, reorderTasks, seedRecurringTasks, settings } = useStore()
   const [showAdd, setShowAdd] = useState(false)
   const [pulling, setPulling] = useState(false)
   const [pullY, setPullY] = useState(0)
@@ -69,11 +69,9 @@ export default function TodayView() {
   const dragFrom = useRef<number | null>(null)
   const [dragOver, setDragOver] = useState<number | null>(null)
 
-  const visibleTasks = focusMode ? tasks.filter(t => !t.isCompleted) : tasks
-
   const grouped = goals
     .filter(g => !g.isArchived)
-    .map(goal => ({ goal, tasks: visibleTasks.filter(t => t.goalId === goal.id) }))
+    .map(goal => ({ goal, tasks: tasks.filter(t => t.goalId === goal.id) }))
     .filter(g => g.tasks.length > 0)
 
   const dateLabel = new Date().toLocaleDateString('pt-BR', {
@@ -94,41 +92,14 @@ export default function TodayView() {
             </h1>
           </div>
           <div className="flex items-center gap-2">
-            {/* Focus mode button */}
-            <button
-              onClick={() => { toggleFocusMode(); if (navigator.vibrate) navigator.vibrate(15) }}
-              className="w-9 h-9 rounded-full flex items-center justify-center transition-all active:scale-90"
-              style={{
-                background: focusMode ? 'var(--ink)' : 'var(--soft)',
-                color: focusMode ? 'var(--paper)' : 'var(--muted)',
-              }}
-              title={focusMode ? 'Sair do foco' : 'Modo Foco'}
-            >
-              <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
-                <circle cx="12" cy="12" r="3"/>
-                <path d="M12 1v4M12 19v4M4.22 4.22l2.83 2.83M16.95 16.95l2.83 2.83M1 12h4M19 12h4M4.22 19.78l2.83-2.83M16.95 7.05l2.83-2.83"/>
-              </svg>
-            </button>
-
             {/* Add button */}
             <button
               onClick={() => setShowAdd(true)}
-              className="w-9 h-9 rounded-full flex items-center justify-center text-white text-xl leading-none active:scale-90 transition-transform"
-              style={{ background: 'var(--ink)' }}
+              className="w-9 h-9 rounded-full flex items-center justify-center text-xl leading-none active:scale-90 transition-transform"
+              style={{ background: 'var(--ink)', color: 'var(--paper)' }}
             >+</button>
           </div>
         </div>
-
-        {/* Focus mode banner */}
-        {focusMode && (
-          <div
-            className="mt-2 flex items-center gap-2 px-3 py-1.5 rounded-xl"
-            style={{ background: 'var(--ink)', color: 'var(--paper)' }}
-          >
-            <span className="text-[12px]">🎯</span>
-            <span className="text-[12px] font-medium">Modo Foco ativo — exibindo apenas pendentes</span>
-          </div>
-        )}
       </div>
 
       {/* Pull-to-refresh indicator */}
@@ -150,7 +121,6 @@ export default function TodayView() {
         ref={scrollRef}
         key={refreshKey}
         className="px-5 space-y-5 pt-2 pb-8"
-        
         onTouchStart={onTouchStartPull}
         onTouchMove={onTouchMovePull}
         onTouchEnd={onTouchEndPull}

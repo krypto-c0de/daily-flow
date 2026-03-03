@@ -17,7 +17,7 @@ async function requestNotifications() {
 }
 
 export default function SummaryView({ onOpenSettings }: { onOpenSettings?: () => void }) {
-  const { goals, tasksForDate, summaryForDate, reflections, darkMode, toggleDarkMode, notificationsEnabled, toggleNotifications, settings, updateSettings, getCurrentStreak, getLongestStreak } = useStore()
+  const { goals, tasksForDate, summaryForDate, reflections, notificationsEnabled, toggleNotifications, settings, updateSettings, getCurrentStreak, getLongestStreak } = useStore()
   const [animated, setAnimated] = useState(false)
   const [chartMode, setChartMode] = useState<'7'|'30'>('7')
 
@@ -60,9 +60,6 @@ export default function SummaryView({ onOpenSettings }: { onOpenSettings?: () =>
             <p style={{ fontSize: 11, fontWeight: 600, textTransform: 'uppercase', letterSpacing: '.08em', color: 'var(--muted)', fontFamily: 'var(--font-system)' }}>Estatísticas</p>
             <h1 style={{ fontSize: 28, fontWeight: 700, letterSpacing: '-.02em', color: 'var(--ink)', fontFamily: 'var(--font-system)', marginTop: 2 }}>Resumo</h1>
           </div>
-          <button onClick={toggleDarkMode} className="w-9 h-9 rounded-full flex items-center justify-center mt-1 active:scale-90 transition-transform" style={{ background: 'var(--soft)', color: 'var(--ink)', border: 'none', cursor: 'pointer' }}>
-            {darkMode ? '☀️' : '🌙'}
-          </button>
         </div>
       </div>
 

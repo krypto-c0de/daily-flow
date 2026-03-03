@@ -24,7 +24,6 @@ export default function TaskRow({ task, goal, isLast }: Props) {
   const [expanded, setExpanded] = useState(false)
   const [newSubtask, setNewSubtask] = useState('')
   const [showNote, setShowNote] = useState(false)
-  const [completing, setCompleting] = useState(false)
 
   const startX = useRef(0)
   const pressTimer = useRef<ReturnType<typeof setTimeout> | null>(null)
@@ -34,8 +33,7 @@ export default function TaskRow({ task, goal, isLast }: Props) {
   const handleCheck = () => {
     if (swipeX !== 0) return
     setPopping(true)
-    if (!task.isCompleted) setCompleting(true)
-    setTimeout(() => { setPopping(false); setCompleting(false) }, 500)
+    setTimeout(() => setPopping(false), 300)
     toggleTask(task.id)
     if (navigator.vibrate) navigator.vibrate(task.isCompleted ? 10 : [20, 10, 20])
   }
@@ -85,16 +83,22 @@ export default function TaskRow({ task, goal, isLast }: Props) {
   const priorityMeta = task.priority ? PRIORITY_COLORS[task.priority] : null
 
   return (
-    // FIX: container com overflow hidden correto para swipe não vazar
     <div
       ref={rowRef}
       className="relative overflow-hidden"
-      style={{ borderBottom: isLast ? 'none' : '1px solid var(--soft)' }}
+      style={{}}
     >
-      {/* Delete bg — agora corretamente contido */}
+      {/* Delete bg */}
       <div
         className="absolute inset-y-0 right-0 flex items-center justify-center"
-        style={{ background: '#EF4444', width: 80 }}
+        style={{
+          background: '#EF4444',
+          width: 80,
+          opacity: swipeX < -2 ? 1 : 0,
+          transform: swipeX < -2 ? 'translateX(0)' : 'translateX(80px)',
+          transition: 'opacity 0.12s ease, transform 0.12s ease',
+          pointerEvents: 'none',
+        }}
       >
         <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="white" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
           <polyline points="3 6 5 6 21 6"/>
@@ -107,10 +111,11 @@ export default function TaskRow({ task, goal, isLast }: Props) {
       {/* Sliding content */}
       <div
         style={{
+          width: '100%',
           background: 'var(--white)',
+          borderBottom: isLast ? 'none' : '1px solid var(--soft)',
           transform: `translateX(${swipeX}px)`,
           transition: swiping ? 'none' : 'transform 0.28s cubic-bezier(0.4,0,0.2,1)',
-          opacity: task.isCompleted ? 0.6 : 1,
         }}
       >
         {/* Main row */}
@@ -120,16 +125,13 @@ export default function TaskRow({ task, goal, isLast }: Props) {
           onTouchMove={onTouchMove}
           onTouchEnd={onTouchEnd}
         >
-
-
-          {/* Checkbox com animação de completing */}
+          {/* Checkbox */}
           <button
             onClick={handleCheck}
             className={`flex-shrink-0 w-[22px] h-[22px] rounded-full border-[1.5px] flex items-center justify-center transition-all duration-200 ${popping ? 'check-pop' : ''}`}
             style={{
               background: task.isCompleted ? 'var(--ink)' : 'transparent',
               borderColor: task.isCompleted ? 'var(--ink)' : 'var(--line)',
-              transform: completing ? 'scale(1.2)' : 'scale(1)',
             }}
           >
             {task.isCompleted && (
@@ -155,10 +157,9 @@ export default function TaskRow({ task, goal, isLast }: Props) {
               className="flex-1 text-[15px] select-none"
               style={{
                 color: task.isCompleted ? 'var(--muted)' : 'var(--ink)',
-                // FIX: strikethrough animado
                 textDecoration: task.isCompleted ? 'line-through' : 'none',
                 textDecorationColor: 'var(--muted)',
-                transition: 'color 0.2s, text-decoration 0.3s',
+                transition: 'color 0.2s',
               }}
             >
               {task.title}
@@ -170,10 +171,9 @@ export default function TaskRow({ task, goal, isLast }: Props) {
             </span>
           )}
 
-          {/* Right actions — FIX: só mostra se há algo a mostrar */}
+          {/* Right actions */}
           {!editing && (
             <div className="flex items-center gap-1 flex-shrink-0">
-              {/* Nota — só aparece se a tarefa TEM nota */}
               {!!task.note && (
                 <button
                   onClick={() => setShowNote(v => !v)}
@@ -189,7 +189,6 @@ export default function TaskRow({ task, goal, isLast }: Props) {
                 </button>
               )}
 
-              {/* Subtarefas — só mostra chevron se há subtarefas OU se está expandido */}
               {(totalSubs > 0 || expanded) && (
                 <button
                   onClick={() => setExpanded(v => !v)}
@@ -207,52 +206,43 @@ export default function TaskRow({ task, goal, isLast }: Props) {
                       {completedSubs}/{totalSubs}
                     </span>
                   )}
-                  <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"
-                    style={{ transform: expanded ? 'rotate(180deg)' : 'none', transition: 'transform 0.2s' }}>
+                  <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round"
+                    style={{ transform: expanded ? 'rotate(180deg)' : 'rotate(0)', transition: 'transform 0.2s' }}>
                     <path d="M6 9l6 6 6-6"/>
                   </svg>
                 </button>
               )}
 
-              {/* Botão para adicionar subtarefa (sempre acessível via "+" pequeno) */}
-              {!expanded && (
-                <button
-                  onClick={() => setExpanded(true)}
-                  className="p-1.5 rounded-lg active:scale-90 transition-transform"
-                  style={{ color: 'var(--muted)' }}
-                  title="Adicionar subtarefa"
+              {priorityMeta && (
+                <span
+                  className="text-[10px] font-semibold px-2 py-0.5 rounded-full"
+                  style={{ background: priorityMeta.bg, color: priorityMeta.text }}
                 >
-                  <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round">
-                    <path d="M12 5v14M5 12h14"/>
-                  </svg>
-                </button>
+                  {priorityMeta.label}
+                </span>
               )}
             </div>
           )}
         </div>
 
-        {/* Nota expandida */}
+        {/* Note */}
         {showNote && task.note && (
-          <div className="px-4 pb-3 -mt-1">
-            <p className="text-[12px] px-3 py-2 rounded-xl" style={{ color: 'var(--muted)', background: 'var(--soft)' }}>
-              📝 {task.note}
-            </p>
+          <div className="px-4 pb-3 pt-0 ml-[46px]">
+            <p className="text-[13px] leading-snug" style={{ color: 'var(--muted)' }}>{task.note}</p>
           </div>
         )}
 
-        {/* Subtarefas */}
+        {/* Subtasks */}
         {expanded && (
-          <div className="px-4 pb-3 space-y-1.5">
-            <div className="h-px mb-2" style={{ background: 'var(--soft)' }} />
-
+          <div className="px-4 pb-3 ml-[46px] space-y-2">
             {(task.subtasks ?? []).map(sub => (
-              <div key={sub.id} className="flex items-center gap-2.5 group">
+              <div key={sub.id} className="flex items-center gap-2 group">
                 <button
                   onClick={() => toggleSubtask(task.id, sub.id)}
-                  className="w-4 h-4 rounded border flex items-center justify-center flex-shrink-0 transition-all"
+                  className="w-4 h-4 rounded border flex-shrink-0 flex items-center justify-center transition-all"
                   style={{
-                    borderColor: sub.isCompleted ? 'var(--ink)' : 'var(--line)',
                     background: sub.isCompleted ? 'var(--ink)' : 'transparent',
+                    borderColor: sub.isCompleted ? 'var(--ink)' : 'var(--line)',
                   }}
                 >
                   {sub.isCompleted && (
@@ -282,7 +272,6 @@ export default function TaskRow({ task, goal, isLast }: Props) {
               </div>
             ))}
 
-            {/* Add subtask input */}
             <div className="flex items-center gap-2 pt-1">
               <div className="w-4 h-4 rounded border flex-shrink-0" style={{ borderColor: 'var(--line)' }} />
               <input

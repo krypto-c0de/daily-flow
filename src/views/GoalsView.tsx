@@ -165,12 +165,29 @@ export default function GoalsView() {
       <div className="flex-shrink-0 px-5 pb-2" style={{ paddingTop: '0.5rem', background: 'var(--paper)' }}>
         <div className="flex items-start justify-between">
           <div>
-            <p className="text-[11px] font-medium uppercase tracking-widest" style={{ color: 'var(--muted)' }}>Planejamento</p>
-            <h1 className="font-display text-3xl mt-0.5" style={{ color: 'var(--ink)' }}>Metas</h1>
+            <p
+              className="text-[11px] font-medium uppercase tracking-widest"
+              style={{ color: 'var(--muted)', fontFamily: 'var(--font-system)' }}
+            >
+              Planejamento
+            </p>
+            <h1
+              style={{
+                fontSize: 28,
+                fontWeight: 700,
+                letterSpacing: '-.02em',
+                color: 'var(--ink)',
+                fontFamily: 'var(--font-system)',
+                marginTop: 2,
+                lineHeight: 1.1,
+              }}
+            >
+              Metas
+            </h1>
           </div>
           <button onClick={() => setShowAdd(true)}
-            className="w-9 h-9 rounded-full flex items-center justify-center text-white text-xl leading-none mt-1 active:scale-90 transition-transform"
-            style={{ background: 'var(--ink)' }}>+</button>
+            className="w-9 h-9 rounded-full flex items-center justify-center text-xl leading-none mt-1 active:scale-90 transition-transform"
+            style={{ background: 'var(--ink)', color: 'var(--paper)' }}>+</button>
         </div>
       </div>
 
