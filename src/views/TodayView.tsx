@@ -4,7 +4,6 @@ import { toDateKey } from '../models/types'
 import ProgressHeader from '../components/ProgressHeader'
 import TaskRow from '../components/TaskRow'
 import AddTaskSheet from '../components/AddTaskSheet'
-import Confetti from '../components/Confetti'
 
 function getGreeting(name?: string) {
   const h = new Date().getHours()
@@ -17,7 +16,6 @@ function getGreeting(name?: string) {
 export default function TodayView() {
   const { goals, tasksForDate, summaryForDate, reorderTasks, focusMode, toggleFocusMode, seedRecurringTasks, settings } = useStore()
   const [showAdd, setShowAdd] = useState(false)
-  const [showConfetti, setShowConfetti] = useState(false)
   const [pulling, setPulling] = useState(false)
   const [pullY, setPullY] = useState(0)
   const [refreshKey, setRefreshKey] = useState(0)
@@ -36,7 +34,6 @@ export default function TodayView() {
 
   useEffect(() => {
     if (summary.completionPercentage === 100 && prevPct.current < 100 && summary.totalTasks > 0) {
-      setShowConfetti(true)
       if (navigator.vibrate) navigator.vibrate([50, 30, 50, 30, 100])
     }
     prevPct.current = summary.completionPercentage
@@ -224,7 +221,6 @@ export default function TodayView() {
       </div>
 
       {showAdd && <AddTaskSheet onClose={() => setShowAdd(false)} />}
-      {showConfetti && <Confetti onDone={() => setShowConfetti(false)} />}
     </div>
   )
 }
