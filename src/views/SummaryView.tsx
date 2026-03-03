@@ -82,7 +82,7 @@ export default function SummaryView({ onOpenSettings }: { onOpenSettings?: () =>
   })()
 
   return (
-    <div className="block">
+    <div>
       <div className="flex-shrink-0 px-5 pb-2" style={{ paddingTop: '0.5rem', background: 'var(--paper)' }}>
         <div className="flex items-start justify-between">
           <div>
@@ -97,7 +97,7 @@ export default function SummaryView({ onOpenSettings }: { onOpenSettings?: () =>
         </div>
       </div>
 
-      <div className="scroll-area px-5 pt-2 space-y-5" style={{ paddingBottom: 'calc(var(--safe-bottom) + 1rem)' }}>
+      <div className="scroll-area px-5 pt-2 space-y-5" >
 
         {/* Today card */}
         <div className="rounded-2xl p-5 shadow-sm fade-up" style={{ background: 'var(--white)' }}>
